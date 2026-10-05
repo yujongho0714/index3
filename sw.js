@@ -2,7 +2,7 @@
    - 한 번 받은 화면 파일을 폰에 저장해 두고 다음부터 바로 열어요.
    - 열 때마다 새 버전이 있는지 조용히 확인하고, 바뀌었으면 다음 실행부터 새 화면이 보여요.
    - Firebase(클라우드 저장)와 구글 로그인은 항상 인터넷으로 연결해요. */
-const CACHE = 'jd-wordchain-v6';   // 2026-10-05: 계급 큰 표시·네온 차례·메인으로 수정·CPU 0명 기본
+const CACHE = 'jd-wordchain-v7';   // 2026-10-05: 실시간 대전 연결 수정
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 const NETWORK_ONLY = /firebaseio\.com|firebasedatabase\.app|firebaseapp\.com|googleapis\.com|accounts\.google\.com|apis\.google\.com|securetoken|identitytoolkit|youtube\.com|youtube-nocookie\.com/;
 
