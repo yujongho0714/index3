@@ -3846,9 +3846,10 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
         <div class="cf-box">
             <div id="cf-msg" class="cf-msg"></div>
             <div class="cf-btns">
-                <button type="button" id="cf-no" class="cf-btn cf-no">아니오</button>
-                <button type="button" id="cf-yes" class="cf-btn cf-yes">예</button>
+                <button type="button" id="cf-yes" class="cf-btn cf-yes">확인</button>
+                <button type="button" id="cf-no" class="cf-btn cf-no">취소</button>
             </div>
+            <div class="cf-btns cf-btns2"><button type="button" id="cf-main" class="cf-btn cf-main" style="display:none">🏠 메인화면으로 가기</button></div>
         </div>
     </div>
 
@@ -6540,14 +6541,23 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
     // popstate 핸들러와 겹쳐서 오작동하는 문제가 있어 자체 모달로 대체합니다.
     const UIConfirm = {
         yesCb: null, noCb: null,
-        show(msg, onYes, onNo) {
+        mainCb: null,
+        show(msg, onYes, onNo, opt) {
             document.getElementById('cf-msg').innerText = msg;
             this.yesCb = onYes || null;
             this.noCb = onNo || null;
+            this.mainCb = (opt && opt.main) || null;
+            document.getElementById('cf-main').style.display = this.mainCb ? 'block' : 'none';
             document.getElementById('confirm-modal').classList.add('show');
         },
+        isOpen() { return document.getElementById('confirm-modal').classList.contains('show'); },
         hide() { document.getElementById('confirm-modal').classList.remove('show'); }
     };
+    document.getElementById('cf-main').addEventListener('click', () => {
+        const cb = UIConfirm.mainCb;
+        UIConfirm.hide();
+        if(cb) cb();
+    });
     document.getElementById('cf-yes').addEventListener('click', () => {
         const cb = UIConfirm.yesCb;
         UIConfirm.hide();
@@ -9282,17 +9292,52 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
         this.classList.add('shake');
     });
 
-    window.addEventListener('popstate', (e) => {
-        if (Game.state !== 'IDLE' && document.getElementById('game').style.display !== 'none') {
-            // 뒤로가기(하드웨어 백버튼 등)로 앱을 완전히 끄려는 시도를 감지하면,
-            // 우선 현재 화면에 그대로 머물도록 상태를 되돌려놓고 확인창을 띄웁니다.
-            // ("예"를 선택했을 때만 실제로 종료되도록)
-            history.pushState({page: 'game'}, "Game", "#game");
-            UIConfirm.show('게임을 종료하시겠습니까?', () => {
-                Game.leaveToLobby();
-            });
+    // [2026-10-14 v17] 폰 뒤로가기 버튼: 사이트가 바로 꺼지지 않고 "뒤로 갈까요?" 팝업을 먼저 띄움.
+    // 확인 → 한 단계 뒤 화면(열린 창 닫기 / 게임 → 로비), 취소 → 그대로, 아래 버튼 → 메인화면.
+    let _bkExit = false, _bkTouchPushed = 0;
+    function bkPush(){ try{ history.pushState({jdGuard: 1}, '', location.href); }catch(e){} }
+    function bkVisible(el){ return !!el && getComputedStyle(el).display !== 'none'; }
+    function bkInGame(){ return Game.state !== 'IDLE' && bkVisible(document.getElementById('game')); }
+    function bkOverlay(){
+        // 로비 위에 떠 있는 전체화면 창(.scn) 중 보이는 것
+        const list = Array.from(document.querySelectorAll('.scn')).filter(el => el.id !== 'lobby' && el.id !== 'game' && el.id !== 'res-ov' && bkVisible(el));
+        return list.length ? list[list.length - 1] : null;
+    }
+    function bkCloseOverlay(el){
+        const btns = Array.from(el.querySelectorAll('button'));
+        const b = btns.find(x => /닫기|뒤로|돌아|나가기|✕|×|메인/.test(x.innerText || x.title || ''));
+        if(b) b.click(); else el.style.display = 'none';
+    }
+    function bkGoMain(){
+        try{ const bag = document.getElementById('lt-bag'); if(bag) bag.classList.remove('on'); }catch(e){}
+        try{ const r = document.getElementById('res-ov'); if(r) r.style.display = 'none'; }catch(e){}
+        const ov = bkOverlay(); if(ov) bkCloseOverlay(ov);
+        if(bkInGame()) Game.leaveToLobby();
+    }
+    function bkAsk(){
+        if(UIConfirm.isOpen()){ UIConfirm.hide(); return; }      // 팝업이 떠 있을 때 뒤로가기 = 취소
+        const bag = document.getElementById('lt-bag');
+        const res = document.getElementById('res-ov');
+        const ov = bkOverlay();
+        if(bag && bag.classList.contains('on')){
+            UIConfirm.show('아이템창을 닫고\n뒤로 갈까요?', () => { bag.classList.remove('on'); }, null, {main: bkGoMain});
+        } else if(bkVisible(res)){
+            UIConfirm.show('결과 화면에서\n뒤로 갈까요?', () => { Game.toMain(); }, null, {main: bkGoMain});
+        } else if(bkInGame()){
+            UIConfirm.show('진행중인 게임을 나가고\n뒤로 갈까요?', () => { Game.leaveToLobby(); }, null, {main: bkGoMain});
+        } else if(ov){
+            UIConfirm.show('이 창을 닫고\n뒤로 갈까요?', () => { bkCloseOverlay(ov); }, null, {main: bkGoMain});
+        } else {
+            UIConfirm.show('더 이상 뒤로 갈 화면이 없어요.\n앱(사이트)을 나갈까요?', () => { _bkExit = true; history.back(); });
         }
+    }
+    window.addEventListener('popstate', (e) => {
+        if(_bkExit){ setTimeout(() => { try{ history.back(); }catch(_){} }, 0); return; }
+        _bkTouchPushed = 2; bkPush();          // 뒤로가기를 눌러도 사이트가 닫히지 않게 항상 한 칸 더 쌓아둠
+        bkAsk();
     });
+    // 크롬은 화면을 터치하지 않고 쌓은 기록은 건너뛰므로, 터치할 때도 한 칸 보충
+    document.addEventListener('pointerdown', () => { if(_bkTouchPushed < 3){ _bkTouchPushed++; bkPush(); } }, {passive: true});
 
     // [수정] 뒤로가기로 탭이 화면에서 사라져도(닫히지는 않고 그대로 백그라운드에
     // 남는 경우) 배경음이 끊기지 않고 계속 나와서, 나중에 다시 들어갔을 때 새로
@@ -9305,7 +9350,7 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
     document.addEventListener('visibilitychange', () => { if(!document.hidden && Sound._on) Sound.online(true); });   // 대전 중 앱에 돌아오면 배경음 다시
 
     window.onload = () => {
-        history.pushState({page: 'lobby'}, "Lobby", "");
+        bkPush();
     };
 
     // [모바일 키보드 대응] 실제 보이는 화면(visualViewport) 높이를 --app-vh 로 반영해
@@ -12647,7 +12692,7 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
     hx.onclick = function(){ heroSetSex(heroSex() === 'M' ? 'F' : 'M'); };
     try{ var inf = b.querySelector('.rp-info'), wv = b.querySelector('#rp-waves'); var me = document.createElement('div'); me.className = 'rp-hp me'; me.innerHTML = '<i id="rp-pbar"></i><span id="rp-phpt"></span>'; var ar0 = b.querySelector('.rp-arena'); if(ar0) ar0.appendChild(me); else if(inf) inf.insertBefore(me, wv); }catch(_){ }
     try{ var ar = b.querySelector('.rp-arena'); if(ar && !b.querySelector('#rp-pot')){ var pb = document.createElement('button'); pb.type = 'button'; pb.id = 'rp-pot'; pb.className = 'rp-pot'; pb.title = '회복물약 (최대 체력의 25%) · 스테이지마다 3개';
-      pb.addEventListener('mousedown', function(e){ e.preventDefault(); }); pb.onclick = function(){ rpgPotion(); }; rpTools(b).appendChild(pb); potDraw(); } if(ar && !b.querySelector('#rp-mp')){ var mb = document.createElement('div'); mb.id = 'rp-mp'; mb.className = 'rp-mp'; var tl = rpTools(b); tl.insertBefore(mb, tl.firstChild); mpDraw(); } }catch(_){ }
+      pb.addEventListener('mousedown', function(e){ e.preventDefault(); }); pb.onclick = function(){ rpgPotion(); }; ar.appendChild(pb); potDraw(); } if(ar && !b.querySelector('#rp-mp')){ var mb = document.createElement('div'); mb.id = 'rp-mp'; mb.className = 'rp-mp'; var tl = rpTools(b); tl.insertBefore(mb, tl.firstChild); mpDraw(); } }catch(_){ }
     hsLabels();
     heroStart(); try{ window.LOOT&&LOOT.bind(b); }catch(_){ }
     try{ if(!BARS.on){ BARS.on = true; setInterval(rpgBarsPlace, 500); window.addEventListener('resize', rpgBarsPlace); var gg = document.getElementById('game'); if(gg) new MutationObserver(function(){ requestAnimationFrame(rpgBarsPlace); }).observe(gg, { attributes:true, attributeFilter:['class'] }); } rpgBarsPlace(); setTimeout(rpgBarsPlace, 80); }catch(_){ }
@@ -13925,13 +13970,14 @@ function bagRender(){var b=document.getElementById('lt-bag'),P=L.pack,NOP=!P;
    L.sel=nk;L.cat=t.c;L.ext=null;bagRender()};
   return}
  var EQC=['weapon','helmet','shield','cloak','armor','outer','shoes'];
+ var view=L.bulk?'bag':(L.view==='eq'?'eq':'bag');b.classList.toggle('v-bag',view==='bag');b.classList.toggle('v-eq',view==='eq');
  var eqk=Object.keys(L.eq).filter(function(c){return get(L.eq[c])});
  var bagList=own.filter(function(k){var it=get(k);return avail(k)>0&&inCat(it)}).sort(sortKeys);
  var mu=Math.round(L.bonus()*1000)/10;
- h='<div class="lt-h"><b>🎒 아이템창</b><span><button id="lt-bk" class="'+(L.bulk?'on':'')+'">🗑 일괄 분해</button> <button id="lt-u">장비 모두 해제</button> <button id="lt-x">✕</button></span></div>'+cubeRowH();
+ h='<div class="lt-h"><b>🎒 아이템창</b><span><button id="lt-bk" class="'+(L.bulk?'on':'')+'">🗑 일괄 분해</button> <button id="lt-u">장비 모두 해제</button> <button id="lt-x">✕</button></span></div>'+cubeRowH()+(L.bulk?'':'<div class="lt-vt"><button data-v="bag" class="'+(view==='bag'?'on':'')+'">🎒 가방</button><button data-v="eq" class="'+(view==='eq'?'on':'')+'">🛡 장비</button></div>');
  if(NOP)h+='<div class="lt-sub" style="text-align:center">🎁 드레스업 아이템을 아직 못 받았어요. 인터넷을 켜고 <button id="lt-getbaram">아이템 받기</button> 를 눌러요</div>';
   var cnm=window.JD_CHAR_NAME?window.JD_CHAR_NAME():'';
- var CHR='<div class="lt-chr"><div class="hs-pvbox"><div class="hs-sky"></div><div class="hs-w"><canvas class="hs-hero" width="288" height="251"></canvas></div></div>'+(cnm?'<div class="lt-cn">👤 '+esc(cnm)+'</div>':'')+'<div class="lt-mu">✨ 획득 경험치 <b style="color:#ffd23f">+'+mu+'%</b><small>'+(L.bonus()>0?'무기 뺀 장비 합산':'장비를 입으면 올라가요')+'</small></div><div class="lt-mu">⚔ 공격력 <b style="color:#ffd23f">'+L.atk()+'</b></div><div class="lt-mu">❤ 최대 체력 <b style="color:#7dffa0">'+L.hp()+'</b></div>'+(function(){var xf=L.optSum('X'),db=L.dropBonus(),s='';if(xf)s+='<div class="lt-mu">🎯 몬스터당 경험치 <b style="color:#ffd23f">+'+xf+'</b></div>';Object.keys(db).forEach(function(g){s+='<div class="lt-mu">🍀 '+G[GI[g]][1]+' 드롭확률 <b style="color:#ffd23f">+'+Math.round(db[g]*100)+'%</b></div>'});return s})()+(function(){var si=L.setInfo();return '<div class="lt-mu">🧩 세트 효과 '+(si?'<b style="color:#ffd23f">'+G[GI[si.g]][1]+' '+TRN[si.tr]+' 세트 · 공격력 +'+si.v+' · 체력 +'+si.v+'</b>':'<small>무기 뺀 6칸을 같은 등급·같은 전직 단계로 맞추면 발동</small>')+'</div>'})()+'</div>';
+ var CHR='<div class="lt-chr"><div class="hs-pvbox"><div class="hs-sky"></div><div class="hs-w"><canvas class="hs-hero" width="288" height="251"></canvas></div></div>'+(cnm?'<div class="lt-cn">👤 '+esc(cnm)+'</div>':'')+'<div class="lt-mini">⚔ '+L.atk()+' · ❤ '+L.hp()+'</div><div class="lt-mu">✨ 획득 경험치 <b style="color:#ffd23f">+'+mu+'%</b><small>'+(L.bonus()>0?'무기 뺀 장비 합산':'장비를 입으면 올라가요')+'</small></div><div class="lt-mu">⚔ 공격력 <b style="color:#ffd23f">'+L.atk()+'</b></div><div class="lt-mu">❤ 최대 체력 <b style="color:#7dffa0">'+L.hp()+'</b></div>'+(function(){var xf=L.optSum('X'),db=L.dropBonus(),s='';if(xf)s+='<div class="lt-mu">🎯 몬스터당 경험치 <b style="color:#ffd23f">+'+xf+'</b></div>';Object.keys(db).forEach(function(g){s+='<div class="lt-mu">🍀 '+G[GI[g]][1]+' 드롭확률 <b style="color:#ffd23f">+'+Math.round(db[g]*100)+'%</b></div>'});return s})()+(function(){var si=L.setInfo();return '<div class="lt-mu">🧩 세트 효과 '+(si?'<b style="color:#ffd23f">'+G[GI[si.g]][1]+' '+TRN[si.tr]+' 세트 · 공격력 +'+si.v+' · 체력 +'+si.v+'</b>':'<small>무기 뺀 6칸을 같은 등급·같은 전직 단계로 맞추면 발동</small>')+'</div>'})()+'</div>';
 
  var S=L.sel&&get(L.sel),bl=null,W=L.selw||'bag';if(S){if(L.eq[S.c]===L.sel&&(W==='eq'||avail(L.sel)<1))W='eq';else W='bag';L.selw=W}
  if(L.bulk){bl=bulkList();var bc2={},bt=0,bn=0;
@@ -13942,13 +13988,13 @@ function bagRender(){var b=document.getElementById('lt-bag'),P=L.pack,NOP=!P;
   h+='</div><div class="lt-sub">고른 등급 <b>'+bn+'개</b> → 경험치 <b style="color:#ffd23f">+'+bt+'</b> (장착 중 · 🔒잠금한 건 빼고 분해돼요)</div><div class="lt-act"><button class="pri" id="lt-bdo"'+(bn?'':' disabled')+'>'+(L.bulk.arm?'⚠️ 정말 분해! 한 번 더 누르면 확정':'분해하기')+'</button><button id="lt-bx">닫기</button></div></div>'}
 
 
- else h+='<div class="lt-sub">아이템을 누르면 착용 · 벗기 · 등급 옮기기 · 옵션 옮기기 · 분해를 할 수 있어요.</div>';
+ else h+='<div class="lt-sub lt-hint">아이템을 누르면 착용 · 벗기 · 등급 옮기기 · 옵션 옮기기 · 분해를 할 수 있어요.</div>';
  h+='<div class="lt-top"><div class="lt-eqp">';
  EQC.forEach(function(c){var k=L.eq[c],it=k&&get(k);
   if(it)h+=btnH(k,it,(L.sel===k&&W==='eq'?' pick':'')+' eq',isW(it)?'<small>⚔'+L.atkFor(it.g)+'</small>':'');
   else h+='<button class="lt-e'+(L.cat===c?' pickc':'')+'" data-c="'+c+'">'+CN[c]+'</button>'});
  var tc=0;bagList.forEach(function(k){tc+=avail(k)});
- h+='</div>'+CHR+'</div><div class="lt-bagt">🎒 가방 '+tc+'개 (종류 '+bagList.length+') · 전체 도감 '+P.items.length+'</div><div class="lt-t"><button data-c="all" class="'+(L.cat==='all'?'on':'')+'">전체</button>';
+ h+='</div>'+CHR+'</div><!--BAGSTART--><div class="lt-bagt">🎒 가방 '+tc+'개 (종류 '+bagList.length+') · 전체 도감 '+P.items.length+'</div><div class="lt-t"><button data-c="all" class="'+(L.cat==='all'?'on':'')+'">전체</button>';
  (function(){var n=0;own.forEach(function(k){var it=get(k);if(it.un)n+=Math.max(0,avail(k))});h+='<button data-c="un" class="lt-tun'+(L.cat==='un'?' on':'')+'">❓ 미감정 '+n+'</button>'})();
   CT.forEach(function(c){var n=0;own.forEach(function(k){var it=get(k);if(it.c===c[0])n+=Math.max(0,avail(k))});h+='<button data-c="'+c[0]+'" class="'+(L.cat===c[0]?'on':'')+'">'+c[1]+' '+n+'</button>'});
  h+='</div>'+apBarH(own)+'<div class="lt-g bagbox">';
@@ -13956,17 +14002,19 @@ function bagRender(){var b=document.getElementById('lt-bag'),P=L.pack,NOP=!P;
   h+=btnH(k,it,L.sel===k&&W==='bag'?' pick':'',isW(it)?'<small>⚔'+L.atkFor(it.g)+(n>1?'×'+n:'')+'</small>':(n>1?'<small>×'+n+'</small>':''))});
  if(!bagList.length)h+='<p class="lt-sub" style="grid-column:1/-1;margin:0">'+(L.cat==='un'?'미감정 아이템이 없어요':'가방이 비었어요')+'</p>';
  if(bagList.length>L.lim)h+='<button id="lt-more" style="grid-column:1/-1">더 보기 ('+(bagList.length-L.lim)+'종 남음)</button>';
+ if(view==='eq'){var mk=h.indexOf('<!--BAGSTART-->');if(mk>=0)h=h.slice(0,mk)+'<div class="lt-eqnote">장비를 누르면 벗기·옵션 확인, 빈 칸을 누르면 가방에서 고를 수 있어요.</div><div>'}
  var st=b.scrollTop;b.innerHTML=h+'</div>'+((S&&L.own[L.sel]&&!L.bulk)?popH(S):'');b.scrollTop=st;placePop(b);try{window.HeroSolo&&HeroSolo.kick()}catch(_){}
  b.querySelector('#lt-x').onclick=function(){b.classList.remove('on')};
  var gbt=b.querySelector('#lt-getbaram');if(gbt)gbt.onclick=function(e){e.stopPropagation();if(window.jdBaramLoad)window.jdBaramLoad(true)};
  b.querySelectorAll('[data-cube]').forEach(function(x){x.onclick=function(){L.openCube(x.dataset.cube)}});
  b.querySelectorAll('[data-prob]').forEach(function(x){x.onclick=function(e){e.stopPropagation();L.showProb(x.dataset.prob)}});
   b.onclick=function(e){if(!L.sel)return;var t=e.target;if(t&&t.closest&&t.closest('.lt-s,.lt-pop,button,.lt-e'))return;L.sel=null;fastSel(b)};
+ b.querySelectorAll('.lt-vt button').forEach(function(x){x.onclick=function(){L.view=x.dataset.v;L.sel=null;bagRender();b.scrollTop=0}});
  b.querySelector('#lt-u').onclick=function(){L.eq={};L.hid={};kset('eq',L.eq);saveLH();bagRender()};
  b.querySelector('#lt-bk').onclick=function(){L.bulk=L.bulk?null:{g:{n:true,r:true},scope:'all',arm:false};bagRender()};
  b.querySelectorAll('.lt-t button').forEach(function(x){x.onclick=function(){L.cat=x.dataset.c;L.sel=null;L.lim=120;if(L.bulk)L.bulk.arm=false;bagRender()}});
  b.querySelectorAll('.lt-s').forEach(function(x){x.onclick=function(ev){var ey=ev&&ev.target&&ev.target.closest&&ev.target.closest('.lt-ey');if(ey){ev.stopPropagation();toggleHid(ey.dataset.eye);return}var w=x.closest('.lt-eqp')?'eq':'bag',c0=L.cat;if(L.sel===x.dataset.k&&L.selw===w){L.sel=null}else{L.sel=x.dataset.k;L.selw=w;var it=get(L.sel);if(it&&L.eq[it.c]!==L.sel)L.cat=(L.cat==='all'||L.cat==='un')?L.cat:it.c}if(L.cat!==c0)bagRender();else fastSel(b)}});
- b.querySelectorAll('.lt-e').forEach(function(x){x.onclick=function(){L.cat=x.dataset.c;L.sel=null;L.lim=120;bagRender();var t=b.querySelector('.lt-bagt');if(t)t.scrollIntoView({block:'start'})}});
+ b.querySelectorAll('.lt-e').forEach(function(x){x.onclick=function(){L.cat=x.dataset.c;L.sel=null;L.lim=120;L.view='bag';bagRender();var t=b.querySelector('.lt-bagt');if(t)t.scrollIntoView({block:'start'})}});
  var mo=b.querySelector('#lt-more');if(mo)mo.onclick=function(){L.lim+=120;bagRender()};
   wirePop(b,S);
  var bap=b.querySelector('#lt-apall');if(bap)bap.onclick=function(){L.appraiseAll();L.sel=null;bagRender()};
@@ -14631,4 +14679,62 @@ html.jd-back-on #game{padding-top:0}
 </script>
 <div id="jd-ver" style="position:fixed;right:8px;bottom:calc(4px + env(safe-area-inset-bottom,0px));z-index:5;font:700 .65rem sans-serif;color:#fff;opacity:.45;pointer-events:none">v16</div>
 <script>(function(){var v=document.getElementById('jd-ver');setInterval(function(){var l=document.getElementById('lobby');v.style.display=(l&&getComputedStyle(l).display!=='none')?'block':'none';},500);})();</script>
+<style id="jd-v17-css">
+/* ===== [v17] 아이템창: 가방 / 장비 분리, 가방 화면에서는 장비·캐릭터를 작게 ===== */
+#lt-bag .lt-vt{flex:none;display:flex;gap:8px;margin:2px 0 4px}
+#lt-bag .lt-vt button{flex:1;min-height:46px;font-weight:900;font-size:1rem;border-radius:12px;border:2px solid #5a4f80;background:#1b1330;color:#cfc4ea}
+#lt-bag .lt-vt button.on{border-color:#ffd23f;color:#ffd23f;background:#3b2f66;box-shadow:0 0 10px #ffd23f55}
+#lt-bag .lt-mini{display:none;font-size:.72rem;color:#ffd23f;text-align:center;font-weight:800;line-height:1.2}
+#lt-bag .lt-eqnote{font-size:.8rem;color:#bdb2dd;text-align:center;margin:6px 0 4px}
+#lt-bag.v-bag .lt-top{flex-direction:row;align-items:center;gap:8px;max-width:none;margin:0}
+#lt-bag.v-bag .lt-top .lt-chr{order:-1;flex:0 0 74px;min-width:74px;max-width:74px;gap:3px;padding:0}
+#lt-bag.v-bag .lt-top .hs-pvbox{height:78px}
+#lt-bag.v-bag .lt-top .hs-pvbox .hs-w{left:50%;bottom:8px}
+#lt-bag.v-bag .lt-top .hs-pvbox .hs-hero{transform:scale(.8)}
+#lt-bag.v-bag .lt-chr .lt-mu,#lt-bag.v-bag .lt-chr .lt-cn{display:none}
+#lt-bag.v-bag .lt-chr .lt-mini{display:block}
+#lt-bag.v-bag .lt-top .lt-eqp{flex:1 1 0;max-width:none;grid-template-columns:repeat(4,1fr);gap:18px 12px;padding:16px 12px 10px;border-width:2px;margin:0}
+#lt-bag.v-bag .lt-top .lt-eqp .lt-e{font-size:.6rem;min-height:0}
+#lt-bag.v-bag .lt-top .lt-eqp .lt-s:is(.g-u,.g-l,.g-m,.g-a)::before{left:-7px;right:-7px;top:-13px;bottom:-12px}
+#lt-bag.v-bag .lt-top .lt-eqp .lt-s{border-width:3px!important}
+#lt-bag.v-bag .lt-top .lt-eqp .lt-s small,#lt-bag.v-bag .lt-top .lt-eqp .lt-s .lt-tr{font-size:.5rem}
+#lt-bag.v-bag .lt-bagt{margin-top:4px}
+#lt-bag.v-bag .lt-g.bagbox{grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:26px 12px;padding:24px 12px 12px}
+/* 가방 화면: 위쪽(큐브·안내)을 줄여서 아이템이 바로 보이게 */
+#lt-bag.v-bag .lt-hint{display:none}
+#lt-bag .cb-probbtn{padding:4px 6px!important;font-size:.8rem}
+#lt-bag .cb-row{gap:4px}
+#lt-bag .cb-chip{padding:4px 6px!important;gap:3px!important}
+#lt-bag .cb-t{flex-wrap:nowrap!important;gap:4px}
+#lt-bag .cb-nm{font-size:.68rem!important}
+#lt-bag .cb-ic{width:26px!important;height:20px!important}
+#lt-bag .cb-chip b{font-size:.9rem!important}
+#lt-bag .cb-chip button{padding:4px 4px!important;font-size:.72rem!important;min-height:0!important}
+#lt-bag.v-bag .lt-g.bagbox{grid-template-columns:repeat(auto-fill,minmax(58px,1fr))!important;gap:22px 12px!important}
+#lt-bag.v-bag .lt-h{padding-bottom:0}
+/* 눈 버튼: 항상 크고 또렷하게 (빨간 줄 = 외형 숨김) */
+#lt-bag .lt-ey{display:flex!important;align-items:center;justify-content:center;position:absolute!important;width:30px!important;height:30px!important;right:-6px!important;top:-6px!important;z-index:12!important;border-radius:50%!important;background:#000e!important;border:2px solid #fff!important;box-shadow:0 0 6px #000}
+#lt-bag .lt-ey svg{width:20px!important;height:20px!important}
+#lt-bag .lt-ey.off{border-color:#ff2a2a!important;background:#2a0a0a!important}
+#lt-bag.v-bag .lt-top .lt-eqp .lt-ey{width:24px!important;height:24px!important;right:-8px!important;top:-8px!important}
+#lt-bag.v-bag .lt-top .lt-eqp .lt-ey svg{width:15px!important;height:15px!important}
+#lt-bag .lt-s.hid img{opacity:.35}
+/* 등급 테두리 다시 진하게 */
+#lt-bag .lt-s{border-width:4px!important;border-style:solid!important;border-color:var(--gc)!important;box-shadow:0 0 12px var(--gc),inset 0 0 10px color-mix(in srgb,var(--gc) 55%,transparent)!important}
+#lt-bag .lt-s:is(.g-u,.g-l,.g-m,.g-a){border-width:3px!important}
+#lt-bag .lt-s:is(.g-u,.g-l,.g-m,.g-a)::before{filter:drop-shadow(0 0 3px var(--gc)) drop-shadow(0 0 7px var(--gc))!important}
+#lt-bag .lt-s.pick{outline:3px solid #fff!important;outline-offset:2px}
+/* ===== [v17] 게임 중 물약: 내 캐릭터 옆에 크게 ===== */
+#rpg-box .rp-arena > .rp-pot{position:absolute!important;left:98px!important;bottom:4px!important;top:auto!important;z-index:9;display:flex!important;flex-direction:column;align-items:center;gap:1px;height:auto!important;padding:5px 9px 4px!important;border-radius:16px!important;border:2px solid #fff4df!important;background:linear-gradient(180deg,#4a3590,#1d1238)!important;box-shadow:0 3px 0 #0b0613,0 0 12px #ff5a7a66!important}
+#rpg-box .rp-arena > .rp-pot .pot-svg{width:38px!important;height:42px!important}
+#rpg-box .rp-arena > .rp-pot .pot-n{font-size:1.2rem!important}
+#game.rpg.kb-open #rpg-box .rp-arena > .rp-pot{left:82px!important;bottom:2px!important;padding:3px 7px 2px!important}
+#game.rpg.kb-open #rpg-box .rp-arena > .rp-pot .pot-svg{width:26px!important;height:29px!important}
+#game.rpg.kb-open #rpg-box .rp-arena > .rp-pot .pot-n{font-size:.95rem!important}
+/* ===== [v17] 확인 팝업: 확인(왼쪽) 취소(오른쪽) / 메인화면으로 가기(아래) ===== */
+#confirm-modal{z-index:20000!important}
+#lt-bag .cb-probbtn{min-height:34px!important;padding:4px!important}
+#confirm-modal .cf-btns2{margin-top:10px}
+#confirm-modal .cf-main{width:100%;flex:1 1 100%}
+</style>
 </body></html>
