@@ -1,47 +1,16 @@
-/* 끝말잇기 오프라인 앱 — 처음 한 번 열면 전부 저장돼서 인터넷 없이도 열려요.
-   게임 파일을 고쳐서 다시 올릴 때는 아래 VERSION 숫자를 하나 올려주세요 (그래야 폰이 새 파일로 바뀌어요). */
-const VERSION = 'v18';
-const CACHE = 'jd-wordchain-' + VERSION;
-const CORE = ['./', 'index.html', 'dict-pack.json', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'favicon.png'];
-const OPTIONAL = ['ranks.json.gz', 'dict1.json.gz', 'dict2.json.gz',
-  'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
-  'https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&display=swap',
-  'https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'];
-const CDN_OK = ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net'];
-
-self.addEventListener('install', e => {
-  e.waitUntil((async () => {
-    const c = await caches.open(CACHE);
-    await c.addAll(CORE);
-    await Promise.all(OPTIONAL.map(u => c.add(u).catch(() => {})));   // 없거나 못 받아도 괜찮은 것들
-    self.skipWaiting();
-  })());
-});
-self.addEventListener('activate', e => {
-  e.waitUntil((async () => {
-    for (const k of await caches.keys()) if (k.startsWith('jd-wordchain-') && k !== CACHE) await caches.delete(k);
-    await self.clients.claim();
-  })());
-});
-self.addEventListener('fetch', e => {
-  const r = e.request; if (r.method !== 'GET') return;
-  const u = new URL(r.url);
-  const same = u.origin === self.location.origin;
-  if (!same && !CDN_OK.includes(u.hostname)) return;   // 실시간 대전 등 인터넷 기능은 그대로 인터넷으로
-  e.respondWith((async () => {
-    const c = await caches.open(CACHE);
-    const hit = await c.match(r, { ignoreSearch: same });
-    if (hit) {
-      if (!same) e.waitUntil(fetch(r).then(res => { if (res && (res.ok || res.type === 'opaque')) c.put(r, res.clone()); }).catch(() => {}));   // 폰트·라이브러리는 몰래 최신으로
-      return hit;
-    }
-    try {
-      const res = await fetch(r);
-      if (res && (res.ok || res.type === 'opaque')) c.put(r, res.clone());
-      return res;
-    } catch (err) {
-      if (r.mode === 'navigate') { const idx = await c.match('index.html'); if (idx) return idx; }
-      return new Response('', { status: 504, statusText: 'offline' });
-    }
-  })());
+const CACHE='coaching2-v15';   /* 앱 파일 */
+const LIB='coaching2-lib';    /* 외부 파일 (버전이 바뀌어도 지우지 않음) */
+const FILES=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
+self.addEventListener('install',e=>{ e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES.map(u=>new Request(u,{cache:'reload'})))).then(()=>self.skipWaiting())); });
+self.addEventListener('activate',e=>{ e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(n=>n.startsWith('coaching2-v')&&n!==CACHE).map(n=>caches.delete(n)))).then(()=>self.clients.claim())); });
+self.addEventListener('fetch',e=>{
+  const rq=e.request; if(rq.method!=='GET') return;
+  const same=new URL(rq.url).origin===self.location.origin;
+  e.respondWith(caches.match(rq,{ignoreSearch:same}).then(hit=>{
+    /* 외부 파일(해골 모델 등)은 한 번 받으면 계속 캐시에서만 사용 */
+    if(hit&&!same) return hit;
+    const net=fetch(rq).then(r=>{ if(r&&(r.ok||r.type==='opaque')){ const cp=r.clone(); caches.open(same?CACHE:LIB).then(c=>c.put(rq,cp)); } return r; }).catch(()=>hit);
+    /* 앱 파일은 캐시를 먼저 보여주고(오프라인 즉시 실행), 인터넷이 있으면 뒤에서 새 버전으로 갱신 */
+    return hit||net;
+  }));
 });
