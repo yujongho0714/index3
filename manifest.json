@@ -1,13 +1,12 @@
 {
-  "name": "정도 끝말잇기",
+  "name": "정도태권도 끝말잇기",
   "short_name": "끝말잇기",
-  "id": "./?app=wordchain-2",
-  "start_url": "./",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "orientation": "any",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "orientation": "portrait",
+  "background_color": "#1d1238",
+  "theme_color": "#1d1238",
   "lang": "ko",
   "icons": [
     {

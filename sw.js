@@ -1,58 +1,47 @@
-/* 정도 끝말잇기 서비스워커
-   - 한 번 받은 화면 파일을 폰에 저장해 두고 다음부터 바로 열어요.
-   - 열 때마다 새 버전이 있는지 조용히 확인하고, 바뀌었으면 다음 실행부터 새 화면이 보여요.
-   - Firebase(클라우드 저장)와 구글 로그인은 항상 인터넷으로 연결해요. */
-const CACHE = 'jd-wordchain-v15';
-const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
-const NETWORK_ONLY = /firebaseio\.com|firebasedatabase\.app|firebaseapp\.com|googleapis\.com|accounts\.google\.com|apis\.google\.com|securetoken|identitytoolkit|youtube\.com|youtube-nocookie\.com/;
+/* 끝말잇기 오프라인 앱 — 처음 한 번 열면 전부 저장돼서 인터넷 없이도 열려요.
+   게임 파일을 고쳐서 다시 올릴 때는 아래 VERSION 숫자를 하나 올려주세요 (그래야 폰이 새 파일로 바뀌어요). */
+const VERSION = 'v2';
+const CACHE = 'jd-wordchain-' + VERSION;
+const CORE = ['./', 'index.html', 'dict-pack.json', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'favicon.png'];
+const OPTIONAL = ['ranks.json.gz', 'dict1.json.gz', 'dict2.json.gz',
+  'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
+  'https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&display=swap',
+  'https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'];
+const CDN_OK = ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => Promise.all(SHELL.map(u => c.add(u).catch(() => null)))).then(() => self.skipWaiting()));
+  e.waitUntil((async () => {
+    const c = await caches.open(CACHE);
+    await c.addAll(CORE);
+    await Promise.all(OPTIONAL.map(u => c.add(u).catch(() => {})));   // 없거나 못 받아도 괜찮은 것들
+    self.skipWaiting();
+  })());
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('jd-wordchain-') && k !== CACHE).map(k => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
+  e.waitUntil((async () => {
+    for (const k of await caches.keys()) if (k.startsWith('jd-wordchain-') && k !== CACHE) await caches.delete(k);
+    await self.clients.claim();
+  })());
 });
 self.addEventListener('fetch', e => {
-  const req = e.request;
-  if (req.method !== 'GET') return;
-  const url = new URL(req.url);
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
-  if (NETWORK_ONLY.test(url.hostname) || url.pathname.indexOf('/__/auth/') >= 0) return;
-  if (req.headers.get('range') || req.destination === 'video' || req.destination === 'audio' || /\.(mp4|webm|mov|m4a|mp3)$/i.test(url.pathname)) return;
-  e.respondWith(url.origin === location.origin ? sameSite(e, req) : cdn(req));
-});
-
-async function sameSite(e, req) {
-  const cache = await caches.open(CACHE);
-  const hit = await cache.match(req, { ignoreSearch: true });
-  const net = fetch(req.url, { cache: 'no-cache' }).then(async r => {
-    if (r && r.ok && r.type === 'basic') {
-      const old = hit && hit.headers.get('etag');
-      const cur = r.headers.get('etag');
-      if (!hit || !old || !cur || old !== cur) await cache.put(req.url.split('?')[0], r.clone());
+  const r = e.request; if (r.method !== 'GET') return;
+  const u = new URL(r.url);
+  const same = u.origin === self.location.origin;
+  if (!same && !CDN_OK.includes(u.hostname)) return;   // 실시간 대전 등 인터넷 기능은 그대로 인터넷으로
+  e.respondWith((async () => {
+    const c = await caches.open(CACHE);
+    const hit = await c.match(r, { ignoreSearch: same });
+    if (hit) {
+      if (!same) e.waitUntil(fetch(r).then(res => { if (res && (res.ok || res.type === 'opaque')) c.put(r, res.clone()); }).catch(() => {}));   // 폰트·라이브러리는 몰래 최신으로
+      return hit;
     }
-    return r;
-  }).catch(() => null);
-  if (hit) { e.waitUntil(net); return hit; }
-  const r = await net;
-  if (r) return r;
-  return (await cache.match('./index.html')) || Response.error();
-}
-
-async function cdn(req) {
-  const cache = await caches.open(CACHE);
-  const hit = await cache.match(req);
-  if (hit) return hit;
-  try {
-    let r;
-    try { r = await fetch(new Request(req.url, { mode: 'cors', credentials: 'omit' })); }
-    catch (_) { r = await fetch(req); }
-    if (r && (r.ok || r.type === 'opaque')) await cache.put(req, r.clone());
-    return r;
-  } catch (_) {
-    return Response.error();
-  }
-}
+    try {
+      const res = await fetch(r);
+      if (res && (res.ok || res.type === 'opaque')) c.put(r, res.clone());
+      return res;
+    } catch (err) {
+      if (r.mode === 'navigate') { const idx = await c.match('index.html'); if (idx) return idx; }
+      return new Response('', { status: 504, statusText: 'offline' });
+    }
+  })());
+});
