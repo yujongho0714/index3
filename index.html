@@ -12735,13 +12735,32 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
   window.JD_CHAR_NAME = charName;
   function heroApply(p, raw){ heroSet(p); try{ localStorage.setItem('jd-rpg-hero', raw); }catch(_){ } }
   /* 캐릭터 파일 하나 읽기 — 저장한 캐릭터(baram-character) · 드레스업 캐릭터(baram-hero) · 드레스업 아이템(baram-loot) 전부 여기서 */
+  /* 분할 통합 파일(baram-part) 모으기: 조각이 다 모이면 baram-all 하나로 합쳐요 */
+  var PARTS = {};
+  function partAdd(p){
+    var gp = PARTS[p.id] || (PARTS[p.id] = { total:p.total, got:{} });
+    gp.got[p.idx] = p;
+    var i, miss = 0;
+    for(i = 1; i <= gp.total; i++) if(!gp.got[i]) miss++;
+    if(miss) return { wait:miss, have:gp.total - miss, total:gp.total };
+    var meta = gp.got[1], loot = Object.assign({}, meta.loot, { items:(meta.items || []).slice(), store:Object.assign({}, meta.store) });
+    for(i = 2; i <= gp.total; i++){ var c = gp.got[i]; loot.items = loot.items.concat(c.items || []); Object.assign(loot.store, c.store || {}); }
+    delete PARTS[p.id];
+    return { all:{ format:'baram-all', v:1, hero:meta.hero, loot:loot } };
+  }
   function heroFile(f, cb){
     if(!f) return; var r = new FileReader();
     r.onload = function(){
       var msg = '캐릭터 파일이 아니에요', note = '';
       try{
-        var p = JSON.parse(r.result);
-        if(p && p.format === 'baram-hero' && p.idle){ heroApply(p, r.result); msg = '캐릭터 적용!'; note = heroNote(); }
+        var p = JSON.parse(r.result), waiting = false;
+        if(p && p.format === 'baram-part' && p.id && p.idx && p.total){
+          var pr = partAdd(p);
+          if(pr.all) p = pr.all;
+          else { waiting = true; msg = '조각 파일 ' + pr.have + '/' + pr.total + '개 받았어요'; note = '나머지 ' + pr.wait + '개도 같이 불러오세요 (한 번에 여러 개 선택)'; }
+        }
+        if(waiting){ }
+        else if(p && p.format === 'baram-hero' && p.idle){ heroApply(p, r.result); msg = '캐릭터 적용!'; note = heroNote(); }
         else if(p && p.format === 'baram-loot' && p.items && window.LOOT && LOOT.applyPack){ var n = LOOT.applyPack(p); msg = '아이템 ' + n + '개 적용!'; note = '🎒 가방에서 입고 벗을 수 있어요'; }
         else if(p && p.format === 'baram-all'){   /* 드레스업 통합 파일: 캐릭터 + 장비·이펙트·스킬 한 번에 */
           var okH = false, nL = 0;
