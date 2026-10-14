@@ -14474,17 +14474,27 @@ html body #game.kb-open .stage-card .word-history{max-height:none !important; ov
   var KEY='jdAutoFitMul', mul=1, raf=0;
   try{ var v=parseFloat(localStorage.getItem(KEY)); if(v>0) mul=v; }catch(e){}
   function targets(){ var g=document.getElementById('game'); if(!g) return []; var m=g.querySelector('.mid-col'), c=g.querySelector('#missions'); return [m,c].filter(Boolean); }
+  var lastZ=-1;
+  function need(m){
+    // 효과(반짝·팝업)가 화면 밖으로 퍼지는 것에 속지 않도록, 실제 배치된 칸들의 높이만 더함 (transform·절대위치 제외)
+    var kids=[].filter.call(m.children,function(c){ var cs=getComputedStyle(c); return cs.display!=='none' && cs.position!=='absolute' && cs.position!=='fixed' && c.offsetHeight>0; });
+    if(!kids.length) return 0;
+    var top=kids[0].offsetTop, bot=0; kids.forEach(function(c){ bot=Math.max(bot,c.offsetTop+c.offsetHeight); });
+    var cs=getComputedStyle(m);
+    return bot-top+(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0)+8;
+  }
   function fit(){
     raf=0;
-    var g=document.getElementById('game'), mid=g&&g.querySelector('.ui-mid');
-    if(!g||!mid||g.style.display==='none'){ return; }
-    var t=targets(); t.forEach(function(e){ e.style.zoom=1; });
-    var need=mid.scrollHeight, avail=mid.clientHeight, f=1;
-    if(need>avail+1 && avail>0) f=Math.max(0.4, avail/need);
-    var z=Math.max(0.4, Math.min(1.5, f*mul));
-    t.forEach(function(e){ e.style.zoom=(Math.abs(z-1)<0.02?'':String(z)); });
-    // 확대했는데 넘치면 다시 한 번 줄임
-    if(mul>1 && mid.scrollHeight>mid.clientHeight+1){ z=Math.max(0.4, z*mid.clientHeight/mid.scrollHeight); t.forEach(function(e){ e.style.zoom=String(z); }); }
+    var g=document.getElementById('game'), mid=g&&g.querySelector('.ui-mid'), m=g&&g.querySelector('.mid-col');
+    if(!g||!mid||!m||g.style.display==='none'){ return; }
+    var t=targets(), prev=m.style.zoom; t.forEach(function(e){ e.style.zoom=1; });
+    var n=need(m), avail=mid.clientHeight, f=1;
+    if(n>0 && avail>0) f=Math.max(0.4, Math.min(1.2, avail/n));   // 모자라면 줄이고, 남으면 최대 1.2배까지 키워서 빈 공간을 채움
+    var z=Math.max(0.4, Math.min(1.6, f*mul));
+    if(mul>1 && n>0 && n*z>avail) z=Math.max(0.4, avail/n);
+    if(lastZ>0 && Math.abs(z-lastZ)<0.03) z=lastZ;   // 미세한 떨림 방지
+    lastZ=z;
+    t.forEach(function(e){ e.style.zoom=(z===1?'':String(z)); });
     var l=document.getElementById('af-val'); if(l) l.textContent=Math.round(z*100)+'%'+(mul===1?' (자동)':'');
   }
   function schedule(){ if(!raf) raf=requestAnimationFrame(fit); }
@@ -14498,15 +14508,43 @@ html body #game.kb-open .stage-card .word-history{max-height:none !important; ov
     var g=document.getElementById('game'); if(!g) return;
     ['kb-size-pop','af-fab'].forEach(function(id){ var e=document.getElementById(id); if(e) g.appendChild(e); });   // 항상 게임 화면 맨 앞에 떠 있게
     var mo=new MutationObserver(schedule);
-    var m=g.querySelector('.mid-col'); if(m) mo.observe(m,{childList:true,subtree:true,characterData:true});
-    mo.observe(g,{attributes:true,attributeFilter:['class','style']});
+    var m=g.querySelector('.mid-col'); if(m) mo.observe(m,{childList:true}); var wh=g.querySelector('#word-history'); if(wh) mo.observe(wh,{childList:true,subtree:true}); var tg=g.querySelector('#target'); if(tg) mo.observe(tg,{childList:true,characterData:true,subtree:true});
+    mo.observe(g,{attributes:true,attributeFilter:['class']});
     window.addEventListener('resize',schedule); window.addEventListener('orientationchange',schedule);
     if(window.visualViewport) visualViewport.addEventListener('resize',schedule);
     document.addEventListener('focusin',schedule); document.addEventListener('focusout',schedule);
-    setInterval(schedule,700);   // 기종별 키보드 반응이 달라서, 계속 확인하며 맞춤
+    setInterval(schedule,500);   // 기종별 키보드 반응이 달라서, 계속 확인하며 맞춤
     schedule();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
+</script>
+<style id="jd-noshake-css">
+/* [v11] 단어 제출할 때 화면 전체가 흔들리던 효과 끔 (입력 카드만 살짝 흔들려요) */
+html body #app-root.mx-shake, html body #app-root.el-shake{animation:none !important; translate:none !important; transform:none !important}
+</style>
+<script id="jd-kbkeep-js">
+(function(){
+  /* 자판 유지: 전송을 눌러도, 연출이 지나가도 입력창 포커스(키보드)가 풀리지 않게 */
+  function ready(){ var i=document.getElementById('inp'), g=document.getElementById('game'); return i&&g&&g.style.display!=='none'&&typeof Game!=='undefined'&&Game.state&&Game.state!=='IDLE'&&!Game.isOver; }
+  function blocked(){ var b=document.getElementById('lt-bag'), p=document.getElementById('kb-size-pop'); return (b&&b.classList.contains('on'))||(p&&p.classList.contains('show')); }
+  function keep(){
+    try{
+      if(!ready()||blocked()) return;
+      var i=document.getElementById('inp'), a=document.activeElement;
+      if(a===i) return;
+      if(a && a!==document.body && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
+      if(!window._jdKbWanted) return;
+      i.focus({preventScroll:true});
+    }catch(e){}
+  }
+  document.addEventListener('focusin',function(e){ if(e.target&&e.target.id==='inp') window._jdKbWanted=true; },true);
+  // 전송 버튼을 눌러도 입력창에서 포커스가 빠지지 않게
+  ['mousedown'].forEach(function(ev){ document.addEventListener(ev,function(e){ var t=e.target&&e.target.closest&&e.target.closest('#game .mw-send'); if(t&&window._jdKbWanted){ e.preventDefault(); } },{capture:true,passive:false}); });
+  // 나가기(게임 종료)하면 더 이상 강제하지 않음
+  document.addEventListener('click',function(e){ if(e.target.closest&&e.target.closest('[onclick*="exitGame"]')) window._jdKbWanted=false; },true);
+  document.addEventListener('focusout',function(e){ if(e.target&&e.target.id==='inp') setTimeout(keep,60); },true);
+  setInterval(keep,400);
 })();
 </script>
 </body></html>
