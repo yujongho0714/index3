@@ -1,7 +1,8 @@
 {
-  "name": "정도태권도 끝말잇기",
-  "short_name": "끝말잇기",
-  "start_url": "./index.html",
+  "id": "app-2",
+  "name": "정도태권도 끝말잇기 2",
+  "short_name": "끝말잇기2",
+  "start_url": "./index.html?app=2",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

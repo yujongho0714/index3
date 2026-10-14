@@ -12748,6 +12748,41 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
     delete PARTS[p.id];
     return { all:{ format:'baram-all', v:1, hero:meta.hero, loot:loot } };
   }
+  /* 🎁 드레스업 아이템 자동 불러오기: baram-data.json 에 적힌 조각 파일을 내려받아 합쳐서 적용해요 (처음 한 번, 데이터가 바뀌면 다시) */
+  function autoMsg(t, keep){
+    try{
+      var d = document.getElementById('baram-auto-msg');
+      if(!d){ d = document.createElement('div'); d.id = 'baram-auto-msg'; d.style.cssText = 'position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:99999;background:rgba(0,0,0,.85);color:#fff;padding:8px 14px;border-radius:14px;font-size:14px;max-width:90%;text-align:center;pointer-events:none'; document.body.appendChild(d); }
+      d.textContent = t; clearTimeout(d._t);
+      if(!keep) d._t = setTimeout(function(){ try{ d.remove(); }catch(_){ } }, 3500);
+    }catch(_){ }
+  }
+  function autoBaram(){
+    var KEY = 'jd-baram-auto';
+    fetch('baram-data.json').then(function(r){ return r.ok ? r.json() : null; }).then(function(m){
+      if(!m || !m.files || !m.files.length) return;
+      var done = ''; try{ done = localStorage.getItem(KEY) || ''; }catch(_){ }
+      if(done === String(m.v)) return;
+      if(!(window.LOOT && LOOT.applyPack)) return;
+      var res = null;
+      (function next(i){
+        if(i >= m.files.length){
+          if(!res || !res.loot || !res.loot.items) return;
+          if(res.hero && res.hero.format === 'baram-hero' && res.hero.idle) heroApply(res.hero, JSON.stringify(res.hero));
+          var n = LOOT.applyPack(res.loot);
+          try{ localStorage.setItem(KEY, String(m.v)); }catch(_){ }
+          try{ window.dispatchEvent(new Event('jd-hero-sex')); }catch(_){ }
+          autoMsg('🎁 아이템 ' + n + '개를 받았어요! 🎒 가방에서 확인해요');
+          return;
+        }
+        autoMsg('🎁 아이템 내려받는 중… (' + (i + 1) + '/' + m.files.length + ')', true);
+        fetch(m.files[i]).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(p){
+          var pr = partAdd(p); if(pr.all) res = pr.all; next(i + 1);
+        }).catch(function(){ autoMsg('아이템을 못 받았어요. 인터넷을 켜고 다시 열어보세요'); });
+      })(0);
+    }).catch(function(){ });
+  }
+  if(document.readyState === 'complete') setTimeout(autoBaram, 1200); else window.addEventListener('load', function(){ setTimeout(autoBaram, 1200); });
   function heroFile(f, cb){
     if(!f) return; var r = new FileReader();
     r.onload = function(){
@@ -14356,6 +14391,17 @@ html.jd-inst-on #app-root{padding-top:calc(48px + env(safe-area-inset-top,0px))}
   var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
   if(standalone) return;
   var ua = navigator.userAgent, isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  /* 안드로이드에서 크롬이 아닌 곳(카카오톡·네이버 앱 안, 삼성 인터넷 등)이면 '설치하기'를 누를 때 크롬으로 바로 열어요.
+     카카오톡·네이버·인스타 같은 앱 안 브라우저에서 열면 열자마자 자동으로 크롬으로 넘어가요. */
+  var isAndroid = /Android/i.test(ua);
+  var isChrome = isAndroid && /Chrome\//.test(ua) && !/SamsungBrowser|EdgA|OPR\/|Whale|NAVER|KAKAOTALK|DaumApps|FBAN|FBAV|Instagram|Line\/|; wv\)/i.test(ua);
+  var isInApp = isAndroid && /KAKAOTALK|NAVER\(inapp|FBAN|FBAV|Instagram|Line\/|DaumApps|; wv\)/i.test(ua);
+  function toChrome(){
+    var u = location.href.split('#')[0];
+    location.href = 'intent://' + u.replace(/^https?:\/\//, '') + '#Intent;scheme=' + (location.protocol === 'http:' ? 'http' : 'https') + ';package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(u) + ';end';
+    if(/KAKAOTALK/i.test(ua)) setTimeout(function(){ if(!document.hidden) location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(u); }, 1500);
+  }
+  if(isInApp){ try{ if(!sessionStorage.getItem('jd-to-chrome')){ sessionStorage.setItem('jd-to-chrome', '1'); toChrome(); } }catch(_){ } }
   function mk(){
     bar = document.createElement('div'); bar.id = 'jd-inst-bar';
     bar.innerHTML = '<img src="icon-192.png" alt=""><span>📲 앱으로 설치하기<small>한 번 설치하면 인터넷 없이도 열려요</small></span><button type="button">설치하기</button>';
@@ -14379,7 +14425,8 @@ html.jd-inst-on #app-root{padding-top:calc(48px + env(safe-area-inset-top,0px))}
     if(dp){
       var e = dp; dp = null; pop.classList.remove('on'); e.prompt();
       (e.userChoice || Promise.resolve()).then(function(c){ if(!(c && c.outcome === 'accepted')) { try{ window._jdDpAgain = true; }catch(_){} } }).catch(function(){});
-    } else guide();
+    } else if(isAndroid && !isChrome){ toChrome(); }
+    else guide();
   }
   window.addEventListener('beforeinstallprompt', function(e){
     e.preventDefault(); dp = e;
