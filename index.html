@@ -14573,4 +14573,49 @@ html body #app-root.mx-shake, html body #app-root.el-shake{animation:none !impor
 #lt-bag .lt-pop{width:min(300px,calc(100% - 16px))}
 #lt-bag .lt-pn{font-size:1.2rem} #lt-bag .lt-pd{font-size:1rem}
 </style>
+<style id="jd-back-css">
+#jd-back{position:fixed;left:8px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:2147482000;display:none;align-items:center;justify-content:center;gap:4px;min-width:120px;height:54px;padding:0 20px;border-radius:99px;border:3px solid #140a22;background:linear-gradient(180deg,#ff8a8a,#d63a3a);color:#fff;font:900 1.1rem 'Jua','Pretendard',sans-serif;box-shadow:0 4px 0 #140a22,0 6px 14px rgba(0,0,0,.45);opacity:.96}
+#jd-back.on{display:flex}
+#jd-back:active{transform:translateY(3px);box-shadow:0 1px 0 #140a22}
+</style>
+<script id="jd-back-js">
+(function(){
+  /* [v12] 어디서든 보이는 "뒤로" 버튼: 큐브 → 가방 → 열린 창 → 게임 나가기 순서로 한 단계씩 돌아가요 */
+  var btn=document.createElement('button'); btn.id='jd-back'; btn.type='button'; btn.textContent='◀ 뒤로가기'; document.body.appendChild(btn);
+  function vis(e){ if(!e) return false; var cs=getComputedStyle(e); if(cs.display==='none'||cs.visibility==='hidden') return false; var r=e.getBoundingClientRect(); return r.width>0&&r.height>0; }
+  function q(sel){ var e=document.querySelector(sel); return (e&&vis(e)&&!e.disabled)?e:null; }
+  function topOverlay(){
+    var best=null,bz=-1;
+    [].forEach.call(document.querySelectorAll('body > div[id], #app-root > div[id]'),function(e){
+      if(e.id==='jd-back'||e.id==='lobby'||e.id==='game'||e.id==='app-root'||e.id==='jd-inst-bar'||e.id==='jd-pause-tag') return;
+      var cs=getComputedStyle(e); if(cs.position!=='fixed'||!vis(e)||cs.pointerEvents==='none'||parseFloat(cs.opacity)<0.05||/seq|fx|toast|flash|confirm/.test(e.id)) return;
+      var r=e.getBoundingClientRect(); if(r.width<innerWidth*0.5||r.height<innerHeight*0.4) return;
+      var z=parseInt(cs.zIndex)||0; if(z>=bz){ bz=z; best=e; }
+    });
+    return best;
+  }
+  function closeBtn(ov){
+    var bs=[].slice.call(ov.querySelectorAll('button,[role=button],.x,[class*=close]'));
+    for(var i=0;i<bs.length;i++){ var t=(bs[i].textContent||'').trim(); if(vis(bs[i])&&!bs[i].disabled&&/^(✕|×|X|닫기|뒤로|취소|아니오|나가기|확인)$|닫기|뒤로|취소/.test(t)) return bs[i]; }
+    return null;
+  }
+  function gameOn(){ try{ var g=document.getElementById('game'); return !!(g&&g.style.display!=='none'&&vis(g)&&typeof Game!=='undefined'&&Game.state&&Game.state!=='IDLE'&&!Game.isOver); }catch(e){ return false; } }
+  function action(){
+    var pop=document.getElementById('kb-size-pop'); if(pop&&pop.classList.contains('show')) return function(){ pop.classList.remove('show'); };
+    var bag=document.getElementById('lt-bag');
+    if(bag&&bag.classList.contains('on')){
+      var b=q('#lt-bag #cb-cancel')||q('#lt-bag #lt-xc')||q('#lt-bag #lt-x'); return function(){ if(b) b.click(); else bag.classList.remove('on'); };
+    }
+    var ov=topOverlay();
+    if(ov){ var c=closeBtn(ov); return function(){ if(c) c.click(); else if(ov.classList.contains('on')) ov.classList.remove('on'); else ov.style.display='none'; }; }
+    if(gameOn()) return function(){ Game.exitGame(); };
+    var lob=document.getElementById('lobby');
+    return null;
+  }
+  btn.addEventListener('click',function(e){ e.preventDefault(); var a=action(); if(a) a(); });
+  ['mousedown'].forEach(function(ev){ btn.addEventListener(ev,function(e){ e.preventDefault(); }); });   // 자판이 닫히지 않게
+  function sync(){ var on=!!action(); btn.classList.toggle('on',on); }
+  setInterval(sync,250); sync();
+})();
+</script>
 </body></html>
