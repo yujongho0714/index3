@@ -9655,12 +9655,25 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
             const S = this.st; S.who = 'cpu'; S.cpu = 1;
             const v = String(S.names[0] || '').replace(/"/g, '&quot;');
             const dl = `<datalist id="wz-roster-dl">${(typeof roster !== 'undefined' ? roster : []).map(r => `<option value="${String(r.name).replace(/"/g, '&quot;')}">`).join('')}</datalist>`;
-            const body = `<h3>⚔️ 내 이름을 정해요</h3>
-                <div class="wz-name"><span class="wz-pi">나</span><input type="text" id="wz-nm-0" list="wz-roster-dl" value="${v}" placeholder="이름 (명단에서 고르거나 새로 입력)" maxlength="20" oninput="Wizard.onName(0,this.value)" onkeydown="if(event.key==='Enter')Wizard.goSolo()"><span class="wz-rk" id="wz-rk-0">${this.rankChip(v)}</span></div>${dl}
-                <div class="wz-note">혼자서 몬스터와 싸워요. 새 이름을 쓰면 <b>플레이어로 자동 추가</b>돼요</div>
-                <div class="wz-note" style="margin-top:6px"><a href="#" style="color:#9db4ff" onclick="Wizard.whoMenu();return false;">다른 방식으로 하기 (같이 · 실시간)</a></div>`;
-            this.frame(1, body, `<button type="button" class="wz-back" onclick="Wizard.close()">✕ 닫기</button><button type="button" class="wz-next" onclick="Wizard.goSolo()">게임 시작 ▶</button>`);
+            const body = `<h3>✏️ 내 이름을 정해요</h3>
+                <div class="wz-name"><span class="wz-pi">나</span><input type="text" id="wz-nm-0" list="wz-roster-dl" value="${v}" placeholder="이름 (명단에서 고르거나 새로 입력)" maxlength="20" oninput="Wizard.onName(0,this.value)" onkeydown="if(event.key==='Enter')Wizard.toModes()"><span class="wz-rk" id="wz-rk-0">${this.rankChip(v)}</span></div>${dl}
+                <div class="wz-note">새 이름을 쓰면 <b>플레이어로 자동 추가</b>돼요</div>`;
+            this.frame(1, body, `<button type="button" class="wz-back" onclick="Wizard.close()">✕ 닫기</button><button type="button" class="wz-next" onclick="Wizard.toModes()">다음 ▶</button>`);
         },
+        // ② 이름 다음 → 어떤 방식으로 할지 고르기 (혼자 RPG / 한 폰으로 여럿이 / 실시간)
+        toModes(){
+            const e = document.getElementById('wz-nm-0'); const name = ((e && e.value) || '').trim();
+            if(!name || name.toUpperCase() === 'CPU'){ alert('이름을 먼저 입력해 주세요.'); if(e) e.focus(); return; }
+            this.st.names = [name];
+            this.addToRoster([name]);
+            this.modeChoice();
+        },
+        modeChoice(){
+            const t = (fn, ico, nm, ds) => `<button type="button" class="wz-opt" style="flex-direction:row;justify-content:flex-start;gap:12px;text-align:left;padding:14px 12px" onclick="${fn}"><span class="wz-oi">${ico}</span><span><b>${nm}</b><br><small>${ds}</small></span></button>`;
+            this.frame(2, `<h3>어떻게 할까요?</h3><div style="display:flex;flex-direction:column;gap:10px">${t("Wizard.pickRpg()", '⚔️', 'RPG 모드 (혼자)', '몬스터와 싸우며 아이템을 모아요')}${t("Wizard.pickWho('local')", '👥', '여럿이 (한 폰으로)', '옆 사람과 번갈아 · 모드도 고를 수 있어요')}${t("Wizard.pickWho('online')", '🌐', '실시간 (다른 폰과)', '방 만들기 / 참가')}</div>`,
+                `<button type="button" class="wz-back" onclick="Wizard.who()">↩ 뒤로</button>`);
+        },
+        pickRpg(){ const S = this.st; S.who = 'cpu'; S.cpu = 1; S.mode = 'rpg'; this.opts(); },
         goSolo(){
             const e = document.getElementById('wz-nm-0'); const name = ((e && e.value) || '').trim();
             if(!name || name.toUpperCase() === 'CPU'){ alert('이름을 먼저 입력해 주세요.'); if(e) e.focus(); return; }
@@ -9690,7 +9703,7 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
                 body += cnt + rows.join('') + dl + (S.who === 'cpu' && S.cpu < 1 ? `<div class="wz-note wz-warn">➕ 를 눌러 CPU를 1명 이상 추가해 주세요</div>` : '') + `<div class="wz-note">새 이름을 쓰면 <b>플레이어로 자동 추가</b>돼요</div>`;
             }
             const can = (S.who === 'local') || (S.who === 'cpu' && S.cpu >= 1);
-            this.frame(1, body, `<button type="button" class="wz-back" onclick="Wizard.who()">↩ 뒤로</button><button type="button" class="wz-next" ${can ? '' : 'disabled'} onclick="Wizard.toMode()">다음 ▶</button>`);
+            this.frame(1, body, `<button type="button" class="wz-back" onclick="Wizard.modeChoice()">↩ 뒤로</button><button type="button" class="wz-next" ${can ? '' : 'disabled'} onclick="Wizard.toMode()">다음 ▶</button>`);
         },
         // [통신 없이 쓰는 박제본] 실시간 대전은 인터넷 주소(index3)로 이동. 이름·계급(획수)을 주소에 실어서 보냄
         ONLINE_URL: 'https://yujongho0714.github.io/index3/',
@@ -9769,7 +9782,7 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
                 ${tg('eo', S.eo, '🙌', '어인정 모드', '만화·TV·영화·가요·방언·북한말·동사·형용사까지 다 써요')}
                 ${tg('one', S.one, '💥', '한방 모드', '이어갈 단어가 없는 <b>한방단어</b>를 낼 수 있어요 (맞으면 바로 탈락)' + (S.who === 'cpu' ? '<br>🤖 CPU는 한방단어를 쓰지 않아요' : ''))}
                 <div class="wz-rounds"><span>라운드</span>${rd}</div>`;
-            this.frame(3, body, `<button type="button" class="wz-back" onclick="Wizard.st.who==='cpu'?Wizard.who():Wizard.mode()">↩ 뒤로</button><button type="button" class="wz-next" onclick="Wizard.go()">게임 시작 ▶</button>`);
+            this.frame(3, body, `<button type="button" class="wz-back" onclick="Wizard.st.who==='cpu'?Wizard.modeChoice():Wizard.mode()">↩ 뒤로</button><button type="button" class="wz-next" onclick="Wizard.go()">게임 시작 ▶</button>`);
         },
         // ⑤ 곧 시작
         go(){
