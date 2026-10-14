@@ -4209,7 +4209,7 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
                 <div class="kb-row" style="margin-top:8px"><label>글자 크기 (키보드 모드)</label><span id="kb-scale-val">100%</span></div>
                 <input type="range" id="kb-scale-slider" min="0.7" max="1.6" step="0.05" value="1" oninput="UISize.apply(this.value)">
                 <button type="button" id="af-reset" onclick="AutoFit.reset()">🔄 자동 맞춤으로 되돌리기</button>
-                <div class="kb-hint">기종과 키보드에 맞춰 화면은 항상 자동으로 맞춰져요. 더 키우거나 줄이고 싶을 때만 조절하세요.</div>
+                <div class="kb-hint">앱 버전 v15 · 기종과 키보드에 맞춰 화면은 항상 자동으로 맞춰져요. 더 키우거나 줄이고 싶을 때만 조절하세요.</div>
             </div>
             <button type="button" id="af-fab" onclick="UISize.toggle()">🔠 크기</button>
         </div>
@@ -14618,4 +14618,6 @@ html body #app-root.mx-shake, html body #app-root.el-shake{animation:none !impor
   setInterval(sync,250); sync();
 })();
 </script>
+<div id="jd-ver" style="position:fixed;right:8px;bottom:calc(4px + env(safe-area-inset-bottom,0px));z-index:5;font:700 .65rem sans-serif;color:#fff;opacity:.45;pointer-events:none">v15</div>
+<script>(function(){var v=document.getElementById('jd-ver');setInterval(function(){var l=document.getElementById('lobby');v.style.display=(l&&getComputedStyle(l).display!=='none')?'block':'none';},500);})();</script>
 </body></html>
