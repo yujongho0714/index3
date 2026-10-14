@@ -4204,13 +4204,14 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
                 </div>
             </div>
             <div id="kb-size-pop">
-                <div class="kb-row">
-                    <label>키보드 모드 크기</label>
-                    <span id="kb-scale-val">100%</span>
-                </div>
+                <div class="kb-row"><label>화면 크기 (전체)</label><span id="af-val">자동</span></div>
+                <input type="range" id="af-slider" min="0.5" max="1.4" step="0.05" value="1" oninput="AutoFit.setMul(this.value)">
+                <div class="kb-row" style="margin-top:8px"><label>글자 크기 (키보드 모드)</label><span id="kb-scale-val">100%</span></div>
                 <input type="range" id="kb-scale-slider" min="0.7" max="1.6" step="0.05" value="1" oninput="UISize.apply(this.value)">
-                <div class="kb-hint">입력창을 눌러 키보드를 띄운 상태에서 조절하면 바로 확인할 수 있어요.</div>
+                <button type="button" id="af-reset" onclick="AutoFit.reset()">🔄 자동 맞춤으로 되돌리기</button>
+                <div class="kb-hint">기종과 키보드에 맞춰 화면은 항상 자동으로 맞춰져요. 더 키우거나 줄이고 싶을 때만 조절하세요.</div>
             </div>
+            <button type="button" id="af-fab" onclick="UISize.toggle()">🔠 크기</button>
         </div>
 
         <div class="ui-mid">
@@ -9325,6 +9326,7 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
         const vv = window.visualViewport;
         const h = vv ? vv.height : window.innerHeight;
         document.documentElement.style.setProperty('--app-vh', h + 'px');
+        if (window.AutoFit) AutoFit.schedule();
         window.scrollTo(0, 0);
     }
     setAppVH();
@@ -9342,13 +9344,14 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
         const midEl3 = document.querySelector('.ui-mid');
         if (midEl3) midEl3.scrollTop = 0;
         setTimeout(setAppVH, 50); setTimeout(setAppVH, 300);
+        const _inp = document.getElementById('inp'); setTimeout(() => { try { _inp.scrollIntoView({block:'nearest'}); } catch(e) {} }, 400);
         setTimeout(centerActivePlayerCard, 60); setTimeout(centerActivePlayerCard, 320);
         setTimeout(() => Game.fitTurnBox(), 80); setTimeout(() => Game.fitTurnBox(), 350);
     });
     document.getElementById('inp').addEventListener('blur', () => {
         document.getElementById('game').classList.remove('kb-open');
         setTimeout(() => Game.fitTurnBox(), 80);
-        setTimeout(setAppVH, 50);
+        setTimeout(setAppVH, 50); setTimeout(setAppVH, 400); setTimeout(setAppVH, 1000);   // 키보드가 완전히 내려간 뒤에도 높이 다시 맞춤
         setTimeout(centerActivePlayerCard, 60);
     });
 
@@ -14450,6 +14453,60 @@ html.jd-inst-on #lt-bag{top:calc(48px + env(safe-area-inset-top,0px))}
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mk); else mk();
   /* 자동 설치 창을 못 쓰는 환경(아이폰 등)은 열자마자 안내 팝업 */
   window.addEventListener('load', function(){ setTimeout(function(){ if(!done && !dp && isIOS){ try{ if(sessionStorage.getItem('jd-inst-popped')) return; sessionStorage.setItem('jd-inst-popped','1'); }catch(_){} guide(); } }, 1800); });
+})();
+</script>
+<style id="jd-autofit-css">
+/* [v10] 자동 화면 맞춤: 남는 높이에 맞춰 전체를 줄이고(zoom), 단어 뜻도 접지 않고 보여줘요 */
+html body #game.kb-open .stage-card .word-history .wh-chip .wh-meaning, html body #game .stage-card .word-history .wh-chip .wh-meaning{display:block !important; -webkit-line-clamp:unset !important; white-space:normal !important; overflow:visible !important; max-height:none !important}
+html body #game.kb-open .word-history .wh-chip .wh-meaning{display:block !important}
+html body #game.kb-open .stage-card .word-history{max-height:none !important; overflow:visible !important}
+#game .ui-mid{overflow-y:auto !important}
+#af-fab{position:absolute; right:6px; bottom:calc(6px + env(safe-area-inset-bottom,0px)); z-index:650; width:auto; min-width:0; height:34px; padding:0 12px !important; border-radius:99px; white-space:nowrap; font:900 .85rem 'Jua','Pretendard',sans-serif !important; border:2px solid #140a22; background:#ffd23f; color:#2a1a00; font-size:1.05rem; line-height:1; padding:0; box-shadow:0 2px 0 #140a22; opacity:.92}
+#af-fab:active{transform:translateY(2px)}
+#kb-size-pop{top:auto !important; bottom:52px !important; right:6px !important; z-index:700 !important; width:240px !important}
+#game .ui-top .sub-bar{overflow-x:auto; scrollbar-width:none}
+#game .ui-top .sub-bar::-webkit-scrollbar{display:none}
+#game .ui-top .sub-bar .btn-s{flex:none}
+#af-reset{width:100%; margin-top:8px; padding:7px; border-radius:9px; border:1px solid rgba(255,255,255,.25); background:#2b2748; color:#fff; font-weight:800; font-size:.78rem}
+</style>
+<script id="jd-autofit-js">
+(function(){
+  var KEY='jdAutoFitMul', mul=1, raf=0;
+  try{ var v=parseFloat(localStorage.getItem(KEY)); if(v>0) mul=v; }catch(e){}
+  function targets(){ var g=document.getElementById('game'); if(!g) return []; var m=g.querySelector('.mid-col'), c=g.querySelector('#missions'); return [m,c].filter(Boolean); }
+  function fit(){
+    raf=0;
+    var g=document.getElementById('game'), mid=g&&g.querySelector('.ui-mid');
+    if(!g||!mid||g.style.display==='none'){ return; }
+    var t=targets(); t.forEach(function(e){ e.style.zoom=1; });
+    var need=mid.scrollHeight, avail=mid.clientHeight, f=1;
+    if(need>avail+1 && avail>0) f=Math.max(0.4, avail/need);
+    var z=Math.max(0.4, Math.min(1.5, f*mul));
+    t.forEach(function(e){ e.style.zoom=(Math.abs(z-1)<0.02?'':String(z)); });
+    // 확대했는데 넘치면 다시 한 번 줄임
+    if(mul>1 && mid.scrollHeight>mid.clientHeight+1){ z=Math.max(0.4, z*mid.clientHeight/mid.scrollHeight); t.forEach(function(e){ e.style.zoom=String(z); }); }
+    var l=document.getElementById('af-val'); if(l) l.textContent=Math.round(z*100)+'%'+(mul===1?' (자동)':'');
+  }
+  function schedule(){ if(!raf) raf=requestAnimationFrame(fit); }
+  window.AutoFit={
+    schedule:schedule,
+    setMul:function(v){ mul=Math.max(0.5,Math.min(1.4,parseFloat(v)||1)); try{localStorage.setItem(KEY,mul);}catch(e){} schedule(); },
+    reset:function(){ mul=1; try{localStorage.removeItem(KEY);}catch(e){} var s=document.getElementById('af-slider'); if(s) s.value=1; if(window.UISize) UISize.apply(1); var k=document.getElementById('kb-scale-slider'); if(k) k.value=1; schedule(); }
+  };
+  function init(){
+    var s=document.getElementById('af-slider'); if(s) s.value=mul;
+    var g=document.getElementById('game'); if(!g) return;
+    ['kb-size-pop','af-fab'].forEach(function(id){ var e=document.getElementById(id); if(e) g.appendChild(e); });   // 항상 게임 화면 맨 앞에 떠 있게
+    var mo=new MutationObserver(schedule);
+    var m=g.querySelector('.mid-col'); if(m) mo.observe(m,{childList:true,subtree:true,characterData:true});
+    mo.observe(g,{attributes:true,attributeFilter:['class','style']});
+    window.addEventListener('resize',schedule); window.addEventListener('orientationchange',schedule);
+    if(window.visualViewport) visualViewport.addEventListener('resize',schedule);
+    document.addEventListener('focusin',schedule); document.addEventListener('focusout',schedule);
+    setInterval(schedule,700);   // 기종별 키보드 반응이 달라서, 계속 확인하며 맞춤
+    schedule();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
 })();
 </script>
 </body></html>
