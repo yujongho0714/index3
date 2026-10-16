@@ -1,6 +1,6 @@
 /* 끝말잇기 오프라인 앱 — 처음 한 번 열면 전부 저장돼서 인터넷 없이도 열려요.
    게임 파일을 고쳐서 다시 올릴 때는 아래 VERSION 숫자를 하나 올려주세요 (그래야 폰이 새 파일로 바뀌어요). */
-const VERSION='v77';
+const VERSION='v84';
 const CACHE = 'jd-wordchain-' + VERSION;
 const CORE = ['./', 'index.html', 'dict-pack.json', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'favicon.png'];
 const OPTIONAL = ['ranks.json.gz', 'dict1.json.gz', 'dict2.json.gz',
@@ -19,7 +19,7 @@ self.addEventListener('install', e => {
 });
 self.addEventListener('activate', e => {
   e.waitUntil((async () => {
-    for (const k of await caches.keys()) if (k.startsWith('jd-wordchain-') && k !== CACHE) await caches.delete(k);
+    for (const k of await caches.keys()) if ((k.startsWith('jd-wordchain-') && k !== CACHE) || k === 'jd-dlx-1' || k === 'jd-dlx-2') await caches.delete(k);   // [v80] 예전 그림 저장소 정리
     await self.clients.claim();
   })());
 });
@@ -31,7 +31,7 @@ self.addEventListener('fetch', e => {
   /* [v70] 캐릭터 그림(dlx 폴더)은 버전이 바뀌어도 지우지 않는 따로 저장소에 (한 번 받으면 계속 씀) */
   if (same && (u.pathname.indexOf('/dlx/') >= 0 || /\/dlx-[^\/]*$/.test(u.pathname))) {
     e.respondWith((async () => {
-      const c = await caches.open('jd-dlx-1');
+      const c = await caches.open('jd-dlx-3');
       if (/index\.json$/.test(u.pathname)) { try { const res = await fetch(r); if (res && res.ok) { c.put(r, res.clone()); return res; } } catch (err) {} }   // 목록은 새 것 먼저
       const hit = await c.match(r, { ignoreSearch: true }); if (hit) return hit;
       try { const res = await fetch(r); if (res && res.ok) c.put(r, res.clone()); return res; } catch (err) { return new Response('', { status: 504, statusText: 'offline' }); }
