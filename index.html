@@ -14931,6 +14931,8 @@ function moFixEq(){try{mohLoad();if(!L.pack||!L.goldOk||!MOH.map)return false;va
   L.own[nk]=(L.own[nk]||0)+1;L.eq[c]=nk;ch++;own++});
  if(ch||cv){kset('own',L.own);kset('eq',L.eq);if(cv)saveLH();try{toast('🎽 모션이 없는 장비 '+(ch+cv)+'개를 모션 있는 장비로 바꿨어요'+(own?' (새로 받은 것 '+own+'개)':''))}catch(_){}try{if(bagOn())bagRender()}catch(_){}}return true}catch(e){return false}}
 L.moFix=moFixEq;
+/* [v107] 모션 없는 장비 교체가 한 번도 안 도는 경우를 막음: 시작 후 1.5초마다(최대 90초) 될 때까지 다시 시도 + 가방을 열 때마다 한 번 더 */
+(function(){var t=0,iv=setInterval(function(){try{if(L._mf||++t>60){clearInterval(iv);return}moFixEq()}catch(_){}},1500)})();
 function pick(g,tr,bc){var cs=Object.keys(L.byC).filter(function(c){return CI[c]!==undefined&&moList(c).length});if(!cs.length)return null;
  var c=cs[Math.random()*cs.length|0];
  if(bc&&bc.cw){var ws=cs.map(function(x){var v=bc.cw[CI[x]];return typeof v==='number'&&v>0?v:0}),sm=0,j=0;ws.forEach(function(v){sm+=v});if(sm>0){var rr=Math.random()*sm;for(;j<ws.length-1;j++){rr-=ws[j];if(rr<0)break}c=cs[j]}}
@@ -16116,7 +16118,7 @@ function cubeGo(b){var C=L.cube;if(!C)return;
     if(r.up){C.msg=C.used+'번 만에 등급 UP! (큐브 '+C.used+'개 사용)';cbFx(sl,t,true,false);fin(r);return}
     setTimeout(loop,50)})()}}
 
-L.openBag=function(){var b=document.getElementById('lt-bag');if(!b){b=document.createElement('div');b.id='lt-bag';document.body.appendChild(b)}b.classList.add('on');bagRender()};
+L.openBag=function(){var b=document.getElementById('lt-bag');if(!b){b=document.createElement('div');b.id='lt-bag';document.body.appendChild(b)}b.classList.add('on');try{L._mf=0;if(L.moFix)L.moFix()}catch(_){}bagRender()};
 function bagOn(){var b=document.getElementById('lt-bag');return !!(b&&b.classList.contains('on'))}
 L.flush=function(){try{kset('own',L.own);kset('cube',L.cb);if(L.goldOk)kset('gold',L.gold);kset('eq',L.eq);kset('lock',L.lock);kset('hid',L.hid)}catch(_){}};
 L.hasOwn=function(){return Object.keys(L.own).length>0};
