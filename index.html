@@ -3897,6 +3897,9 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
     { id:'mrand', v:'v48', nm:'🗺 매 판 다른 지역에서 시작', d:'판마다 시작 지역(몬스터 묶음·배경)이 랜덤이라 새 몬스터가 골고루 나와요. 스테이지 번호·난이도는 그대로 1부터.' }
   ];
   var HIST = [
+    { v:'v126', d:'🌟 카드 각성: 같은 등급의 남는 카드로 100% 각성 (✦1~4는 1장씩 · ✦5는 2장) · 장비 경험치도 비슷한 난이도로 조정 · 🃏 카드광대 보상: 카드 1장+고급 뽑기권 10장+일반 20장'},
+    { v:'v123', d:'🃏 카드광대(황금고블린처럼 나와요 · 잡으면 카드 1장+뽑기권) · 🔁 반복 업적 · 🏆 업적 단계 늘림 · 쉬운 수치: 합성 성공률↑·천장 10번·뽑기권 드롭↑'},
+    { v:'v122', d:'🎁 출석(매일 고급뽑기권 20장+100만 골드 · 7일마다 유일 뽑기권 · 30일째 천계 뽑기권) · 🏆 업적(골드·뽑기권) · 💰 큐브 팔기 값 수상한 5천/레드 1만/블랙 2만 · ⚗ 합성에 성공 확률·천장(실패하면 쌓이고 운으로 성공해도 안 없어져요)'},
     { v:'v119', d:'💪 도감 힘 한계선 조정: 200명을 전부 모으면 공격·체력·방어·치명이 딱 한계선(35/45/43/43%)에 닿아요. 이제 모으는 변신마다 힘이 끝까지 올라요. · 게임 파일 용량 22MB→약 5MB (그림·자료는 .txt 파일 6개로 분리)'},
     { v:'v115', d:'🃏 도감 카드: 2중 테두리 · 홀로그램 빛이 흐르는 효과 · 명계~절대신 별이 2중 테두리 별(등급마다 색·빛 다름)'},
     { v:'v113', d:'🌟 변신·동료 각성 다시: 장비 아이템을 먹이면 각성 경험치 (등급이 높을수록 많이 · 10% 확률 대성공 ×2) · ✦5까지 레벨업'},
@@ -10079,7 +10082,7 @@ window.jdpV = function(k, d){ return window.JDP ? JDP.v(k, d) : d; };
         const hero = lobby.querySelector('.lobby-hero');
         if(hero && !document.getElementById('lb-top')){
             const m = document.createElement('div'); m.id = 'lb-top';
-            m.innerHTML = `<div class="lb-row"><button type="button" onclick="JDOv.open('backup-ov')">💾 백업</button><button type="button" onclick="QRMove.open()">📱 QR 옮기기</button><button type="button" onclick="JDOv.open('more-ov')">⚙️ 더보기</button></div><div class="lb-row"><button type="button" onclick="HeroSolo.openPanel()">🥋 내 캐릭터</button><button type="button" onclick="HeroSolo.pick()">📥 캐릭터 불러오기</button><button type="button" onclick="window.LOOT&&LOOT.openBag()">🎒 가방</button></div><div class="lb-row"><button type="button" onclick="window.JD_TH&&JD_TH.open()">🥋 타일 헌트</button><button type="button" onclick="window.LOOT&&LOOT.autoOpen()">⚔ 자동사냥</button><button type="button" onclick="window.LOOT&&LOOT.cpOpen()">🎟 쿠폰</button><button type="button" onclick="window.LOOT&&LOOT.dlxOpen('gacha')">🎰 변신·동료 뽑기</button></div><div class="lb-row"><button type="button" onclick="window.LOOT&&LOOT.dlxOpen('equip')">🦸 변신·동료 장착</button><button type="button" onclick="window.LOOT&&LOOT.dlxOpen('syn')">⚗ 변신·동료 합성</button><button type="button" onclick="window.LOOT&&LOOT.dlxOpen('aw')">🌟 변신·동료 각성</button><button type="button" onclick="window.LOOT&&LOOT.dlxOpen('pow')">💪 도감 힘</button><button type="button" onclick="window.LOOT&&LOOT.dlxOpen('book')">📖 변신·동료 도감</button><button type="button" onclick="window.LOOT&&LOOT.resOpen&&LOOT.resOpen()">📦 리소스 받기</button><button type="button" class="jd-stbtn" onclick="window.LOOT&&LOOT.stOpen&&LOOT.stOpen()">🗺 스테이지 선택</button></div><div class="lb-row" id="lb-bake-row"><button type="button" id="lb-bake" onclick="JDOv.open('bake-ov');BakeUI.open()">📦 박제본 내보내기</button></div>`;
+            m.innerHTML = `<div class="lb-row"><button type="button" onclick="JDOv.open('backup-ov')">💾 백업</button><button type="button" onclick="QRMove.open()">📱 QR 옮기기</button><button type="button" onclick="JDOv.open('more-ov')">⚙️ 더보기</button></div><div class="lb-row"><button type="button" onclick="HeroSolo.openPanel()">🥋 내 캐릭터</button><button type="button" onclick="HeroSolo.pick()">📥 캐릭터 불러오기</button><button type="button" onclick="window.LOOT&&LOOT.openBag()">🎒 가방</button></div><div class="lb-row"><button type="button" onclick="window.JD_TH&&JD_TH.open()">🥋 타일 헌트</button><button type="button" onclick="window.LOOT&&LOOT.autoOpen()">⚔ 자동사냥</button><button type="button" onclick="window.LOOT&&LOOT.cpOpen()">🎟 쿠폰</button><button type="button" onclick="window.LOOT&&LOOT.bonOpen&&LOOT.bonOpen()">🎁 출석·업적</button><button type="button" onclick="window.LOOT&&LOOT.dlxOpen('gacha')">🎰 변신·동료 뽑기</button></div><div class="lb-row"><button type="button" onclick="window.LOOT&&LOOT.dlxOpen('equip')">🦸 변신·동료 장착</button><button type="button" onclick="window.LOOT&&LOOT.dlxOpen('syn')">⚗ 변신·동료 합성</button><button type="button" onclick="window.LOOT&&LOOT.dlxOpen('aw')">🌟 변신·동료 각성</button><button type="button" onclick="window.LOOT&&LOOT.dlxOpen('pow')">💪 도감 힘</button><button type="button" onclick="window.LOOT&&LOOT.dlxOpen('book')">📖 변신·동료 도감</button><button type="button" onclick="window.LOOT&&LOOT.resOpen&&LOOT.resOpen()">📦 리소스 받기</button><button type="button" class="jd-stbtn" onclick="window.LOOT&&LOOT.stOpen&&LOOT.stOpen()">🗺 스테이지 선택</button></div><div class="lb-row" id="lb-bake-row"><button type="button" id="lb-bake" onclick="JDOv.open('bake-ov');BakeUI.open()">📦 박제본 내보내기</button></div>`;
             hero.prepend(m);
         }
     }
@@ -13956,7 +13959,7 @@ window.jdpV = function(k, d){ return window.JDP ? JDP.v(k, d) : d; };
     var w = ''; for(var i=0;i<5;i++) w += '<i class="' + (i < RPG.wave || RPG.boss ? 'done' : i === RPG.wave ? 'now' : '') + '"></i>';
     w += '<i class="boss ' + (RPG.boss ? 'now' : '') + '">BOSS</i>';
     document.getElementById('rp-waves').innerHTML = w;
-    document.getElementById('rp-name').innerHTML = RPG.boss ? (RPG.jq ? '<em>🥋 전직 퀘스트</em> ' + jqVal('nm', RPG.jq) : RPG.hid ? '<em>🕳 HIDDEN</em> ' + RPG_HID.nm : '<em>👑 BOSS</em> ' + (RPG.dl ? '[' + RPG.dl.gn + '] ' + RPG.dl.ko : st.boss)) : (RPG.dl ? '<em style="color:' + RPG.dl.col + '">[' + RPG.dl.gn + ']</em> ' + RPG.dl.ko : RPG.tre && window.LOOT ? '💰 ' + LOOT.TRE_NM[RPG.tre] : st.mob) + ' <small>' + (RPG.wave + 1) + '/5</small>';
+    document.getElementById('rp-name').innerHTML = RPG.boss ? (RPG.jq ? '<em>🥋 전직 퀘스트</em> ' + jqVal('nm', RPG.jq) : RPG.hid ? '<em>🕳 HIDDEN</em> ' + RPG_HID.nm : '<em>👑 BOSS</em> ' + (RPG.dl ? '[' + RPG.dl.gn + '] ' + RPG.dl.ko : st.boss)) : (RPG.dl ? '<em style="color:' + RPG.dl.col + '">[' + RPG.dl.gn + ']</em> ' + RPG.dl.ko : RPG.tre && window.LOOT ? (RPG.tre === 'cln' ? '🃏 ' : '💰 ') + LOOT.TRE_NM[RPG.tre] : st.mob) + ' <small>' + (RPG.wave + 1) + '/5</small>';
     var dn = ''; try{ if(jdpOn('diff') && !RPG.jq){ var tq = rpgTier(); dn = '<span class="rp-dchip" style="background:' + RPG_DIFF.col[tq] + '">' + rpgDiffV('nm', tq) + '</span>'; } }catch(_){ }
     var sn = RPG.jq ? '🏯 국기원 · ' + jqTitle(RPG.jq) : 'STAGE ' + (RPG.st + 1) + ' · ' + st.nm; document.getElementById('rp-stage').innerHTML = sn.replace(/[&<>]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;' }[c]; }) + dn;
     try{ rpgBarsPlace(); }catch(_){ }
@@ -13968,7 +13971,7 @@ window.jdpV = function(k, d){ return window.JDP ? JDP.v(k, d) : d; };
     try{ var skl = b.querySelector('.rp-sky'), mbg = libMapBg(); if(skl) skl.style.background = mbg ? 'url("' + mbg + '") center bottom/cover no-repeat' : ''; }catch(_){ }
     RPG.max = Math.round(RPG.boss ? 300 + RPG.st * 60 : 140 + RPG.st * 25);  /* [난이도 상향] 일반 250+50×스테이지 · 보스 1500+250×스테이지 (예전엔 스테이지 1~20에서 절반이었음) */ if(!jdpOn('hp47')) RPG.max = Math.round(RPG.boss ? 240 + 40 * RPG.st : 120 + 20 * RPG.st); if(RPG.hid) RPG.max = Math.round(RPG_HID.hpB + RPG_HID.hpP * RPG.st); RPG.elite = !RPG.boss && !RPG.hid && (RPG.fel || (jdpOn('elite') && Math.random() * 100 < jdpV('eliteP', ELITE.p))); RPG.fel = false; RPG.max = Math.round(RPG.max * rpgCurve('hp') * (RPG.elite ? jdpV('eliteHp', ELITE.hp) : 1) * (RPG.hid ? jdpV('hidHp', 100) : jdpV('mhp', 100)) / 100 * rpgDiff('hp')); if(RPG.jq){ RPG.elite = false; RPG.max = Math.round(Number(jqVal('hp', RPG.jq)) || 900); } RPG.tre = null; if(!RPG.boss && !RPG.hid && !RPG.jq && !RPG.elite && window.LOOT && LOOT.treRoll){ RPG.tre = LOOT.treRoll(); if(RPG.tre) RPG.max = Math.round(RPG.max * LOOT.TRE.hp / 100); }   /* [v66] 황금고블린·미믹 */ RPG.frz = 0; RPG.dl = null; try{ if(window.DLX && !RPG.hid && !RPG.jq && !RPG.tre && (RPG.boss || !RPG.elite)){ RPG.dl = DLX.rollMon(!!RPG.boss); if(RPG.dl) RPG.max = Math.round(RPG.max * RPG.dl.hp); } }catch(_){ RPG.dl = null; }   /* [v67] 듀얼리스트 등급 몬스터 */ RPG.hp = RPG.max; try{ skClear(); }catch(_){ } try{ if(window.JDFX) JDFX.wg.spawn((!window.jdpOn || jdpOn('jdbrk')) ? { boss:RPG.boss, elite:RPG.elite, hid:!!RPG.hid, dl:RPG.dl, jq:RPG.jq } : {}); }catch(_){ } b.classList.toggle('boss', RPG.boss); b.classList.toggle('hid', !!RPG.hid); b.classList.toggle('elite', !!RPG.elite); if(RPG.elite) setTimeout(function(){ try{ rpgFx('rp-ban', '⭐ 정예 몬스터!<small>체력·공격 UP · 경험치 ×' + ELITE.xp + ' · 장비 한 번 더</small>', 1300); }catch(_){ } }, 300); b.classList.remove('rage');
     var m = document.getElementById('rp-mon'); m.querySelectorAll('.rp-half').forEach(function(x){ x.remove(); });
-    var art = document.getElementById('rp-art'); art.innerHTML = monArt(st, RPG.boss); art.style.filter = RPG.hid ? 'hue-rotate(150deg) saturate(1.7) drop-shadow(0 0 14px #b46cff)' : ''; if(RPG.hid && RPG_HID.img.boss){ art.innerHTML = '<img class="rp-img" alt="" draggable="false" src="' + RPG_HID.img.boss + '">'; art.style.filter = ''; } if(RPG.jq){ art.innerHTML = jqArt(RPG.jq); art.style.filter = ''; } b.classList.toggle('dlm', !!RPG.dl); if(window.DLX) DLX.gameH = null; if(RPG.dl){ b.style.setProperty('--dlc', RPG.dl.col); art.style.filter = ''; DLX.gameH = DLX.mountMon(art, RPG.dl); var _dm = RPG.dl; setTimeout(function(){ try{ rpgFx('rp-ban', '🃏 [' + _dm.gn + '] ' + _dm.ko + ' 등장!<small>잡으면 카드를 얻을 수도 있어요</small>', 1400); }catch(_){ } }, RPG.boss ? 900 : 300); } b.classList.toggle('tre', !!RPG.tre); if(RPG.tre){ art.innerHTML = LOOT.treArt(RPG.tre); art.style.filter = ''; var _tn = LOOT.TRE_NM[RPG.tre]; setTimeout(function(){ try{ rpgFx('rp-ban', '💰 ' + _tn + ' 등장!<small>잡으면 황금 보따리!</small>', 1300); }catch(_){ } }, 300); } b.classList.toggle('jq', !!RPG.jq); art.style.visibility = 'visible';
+    var art = document.getElementById('rp-art'); art.innerHTML = monArt(st, RPG.boss); art.style.filter = RPG.hid ? 'hue-rotate(150deg) saturate(1.7) drop-shadow(0 0 14px #b46cff)' : ''; if(RPG.hid && RPG_HID.img.boss){ art.innerHTML = '<img class="rp-img" alt="" draggable="false" src="' + RPG_HID.img.boss + '">'; art.style.filter = ''; } if(RPG.jq){ art.innerHTML = jqArt(RPG.jq); art.style.filter = ''; } b.classList.toggle('dlm', !!RPG.dl); if(window.DLX) DLX.gameH = null; if(RPG.dl){ b.style.setProperty('--dlc', RPG.dl.col); art.style.filter = ''; DLX.gameH = DLX.mountMon(art, RPG.dl); var _dm = RPG.dl; setTimeout(function(){ try{ rpgFx('rp-ban', '🃏 [' + _dm.gn + '] ' + _dm.ko + ' 등장!<small>잡으면 카드를 얻을 수도 있어요</small>', 1400); }catch(_){ } }, RPG.boss ? 900 : 300); } b.classList.toggle('tre', !!RPG.tre); if(RPG.tre){ art.innerHTML = LOOT.treArt(RPG.tre); art.style.filter = ''; var _tn = LOOT.TRE_NM[RPG.tre], _tk = RPG.tre; setTimeout(function(){ try{ rpgFx('rp-ban', (_tk === 'cln' ? '🃏 ' : '💰 ') + _tn + ' 등장!<small>' + (_tk === 'cln' ? '잡으면 카드와 뽑기권!' : '잡으면 황금 보따리!') + '</small>', 1300); }catch(_){ } }, 300); } b.classList.toggle('jq', !!RPG.jq); art.style.visibility = 'visible';
     try{ if(RPG.boss){
         m.animate([{ transform:'translateY(-140px) scale(.3)', opacity:0 }, { transform:'translateY(6px) scale(1.12,.9)', opacity:1, offset:.55 }, { transform:'scale(.97,1.03)', offset:.75 }, { transform:'none' }], { duration:780, easing:'cubic-bezier(.2,1.2,.4,1)' });
         setTimeout(function(){ try{ var ap = document.getElementById('app-root'); if(ap && fxk() > 0){ ap.classList.remove('el-shake'); void ap.offsetWidth; ap.classList.add('el-shake'); } tone('square', 90, 40, .35, .4); }catch(_){ } }, 430);
@@ -14355,7 +14358,7 @@ window.jdpV = function(k, d){ return window.JDP ? JDP.v(k, d) : d; };
       rpgFx('rp-ban', wasJq ? '🥋 심사 합격!' : RPG.hid ? '🕳 히든보스 격파!' : wasBoss ? '보스 격파!' : wasElite ? '⭐ 정예 격파!' : '격파!', 1300); if(wasElite) setTimeout(function(){ try{ window.LOOT&&LOOT.drop(false, m, rpgSI()); }catch(_){ } }, 450); try{ window.LOOT&&LOOT.drop(wasBoss, m, RPG.hid ? 'h' + (RPG.hm || 0) : rpgSI()); }catch(_){ } try{ window.JDSKIN&&JDSKIN.drop(wasBoss, !!RPG.hid); }catch(_){ }
       var r = m.getBoundingClientRect(); if(fxk() > 0) burst(r.left + r.width/2, r.top + r.height/2, wasBoss ? 40 : 18, wasBoss ? 1.3 : .9);
       tone('square', 300, 60, .25, .45); tone('triangle', 600, 1200, .3, .15, .1);
-      RPG.kills++; if(wasBoss) RPG.bosses++; try{ if(window.LOOT && LOOT.addGold && jdpOn('sforce')){ LOOT.noteSt(RPG.st); LOOT.addGold(Math.round(LOOT.goldKill(RPG.st, wasBoss || !!wasJq, wasElite, !!RPG.hid) * (RPG.dl ? RPG.dl.gold : 1)), m); } }catch(_){ }   /* [v65] 처치 골드 */ try{ if(window.LOOT && LOOT.dlxKill && !wasJq && !RPG.tre) LOOT.dlxKill(RPG.hid ? 'hid' : wasBoss ? 'boss' : wasElite ? 'elite' : 'mob', RPG.dl, m); }catch(_){ }   /* [v67] 뽑기권·카드 */ try{ if(RPG.tre && window.LOOT && LOOT.pouch && jdpOn('sforce')){ var _tv = LOOT.pouch(m); setTimeout(function(){ try{ rpgFx('rp-ban', '💰 황금 보따리!<small>+' + _tv.toLocaleString() + ' 골드</small>', 1600); }catch(_){ } }, 600); } }catch(_){ } RPG.tre = null; try{ hidOnKill(wasBoss); }catch(_){ } try{ rpgHeal(wasBoss ? .5 : .25); }catch(_){ }
+      RPG.kills++; if(wasBoss) RPG.bosses++; try{ if(window.LOOT && LOOT.addGold && jdpOn('sforce')){ LOOT.noteSt(RPG.st); LOOT.addGold(Math.round(LOOT.goldKill(RPG.st, wasBoss || !!wasJq, wasElite, !!RPG.hid) * (RPG.dl ? RPG.dl.gold : 1)), m); } }catch(_){ }   /* [v65] 처치 골드 */ try{ if(window.LOOT && LOOT.dlxKill && !wasJq && !RPG.tre) LOOT.dlxKill(RPG.hid ? 'hid' : wasBoss ? 'boss' : wasElite ? 'elite' : 'mob', RPG.dl, m); }catch(_){ }   /* [v67] 뽑기권·카드 */ try{ if(RPG.tre === 'cln' && window.LOOT && LOOT.clownKill){ LOOT.clownKill(m); } else if(RPG.tre && window.LOOT && LOOT.pouch && jdpOn('sforce')){ var _tv = LOOT.pouch(m); setTimeout(function(){ try{ rpgFx('rp-ban', '💰 황금 보따리!<small>+' + _tv.toLocaleString() + ' 골드</small>', 1600); }catch(_){ } }, 600); } }catch(_){ } RPG.tre = null; try{ hidOnKill(wasBoss); }catch(_){ } try{ rpgHeal(wasBoss ? .5 : .25); }catch(_){ }
       /* [2026-10-13 경험치] 몬스터 1마리당: 일반 10+2×스테이지, 보스는 2배 × 장비 보너스 · [2026-10-14] 모든 몬스터 경험치 2배로 상향 → 일반 20+4×스테이지, 보스 40+8×스테이지 */
       try{
         var xb = (60 + 8 * RPG.st) * (wasBoss ? 2 : 1) * 2, xm = 1;
@@ -15196,8 +15199,8 @@ function lowCube(boss,el){var base=boss?{red:2,black:2,sus:5}:{sus:3,rb:.5},o={}
  if(boss){['red','black','sus'].forEach(function(t){var n=rr(base[t]);if(n)o[t]=n})}else{var s=rr(base.sus);if(s)o.sus=s;if(Math.random()<base.rb*LOWA.c){o[Math.random()<.5?'red':'black']=1}}
  if(Object.keys(o).length){L.addCubes(o);var el2=document.getElementById('ah-art');Object.keys(o).forEach(function(t,i){setTimeout(function(){try{cubeFly(t,o[t],el2)}catch(_){}},300+i*300)});AH.cb=AH.cb||{};Object.keys(o).forEach(function(t){AH.cb[t]=(AH.cb[t]||0)+o[t]})}}
 /* 💰 큐브 팔기 (수상한·레드·블랙만 · 얼티밋·이터널은 못 팔아요) · 값 = CB_SELL × (1 + 전직 보너스) */
-var CB_SELL={sus:15,red:60,black:120};L.CB_SELL=CB_SELL;
-function cbPrice(t){return Math.max(1,Math.round((CB_SELL[t]||0)*(1+GOLD.tier*tierNow())))}
+var CB_SELL={sus:5000,red:10000,black:20000};L.CB_SELL=CB_SELL;
+function cbPrice(t){return CB_SELL[t]||0}
 L.cbSell=function(t){if(!CB_SELL[t]){toast('이 큐브는 팔 수 없어요');return}var have=cbn(t);if(have<1){toast('팔 큐브가 없어요');return}var o=document.getElementById('cs-ov');if(o)o.remove();o=document.createElement('div');o.id='cs-ov';var pr=cbPrice(t);
  o.innerHTML='<div class="cs-box"><b>💰 '+CUBE_NM[t]+' 팔기</b><div class="cs-i"><i class="cb-ic '+t+'"></i> 가진 개수 <b>×'+have+'</b> · 1개 <b>'+goldFmt(pr)+'</b> 골드</div><div class="cs-q"><button data-n="1">1개</button><button data-n="10">10개</button><button data-n="100">100개</button><button data-n="half">절반</button><button data-n="all">전부</button></div><div class="cs-s" id="cs-s"></div><div class="cs-b"><button class="pri" id="cs-go" disabled>팔기</button><button id="cs-x">닫기</button></div></div>';
  document.body.appendChild(o);var n=0,s=o.querySelector('#cs-s'),go=o.querySelector('#cs-go');
@@ -15315,10 +15318,10 @@ L.autoOpen=function(lowCall){if(lowCall!==true)AH.low=false;var A=window.RPG_AUT
 function ahSI(){var n=window.RPG_AUTO.n();return ((AH.st+AH.so)%n+n)%n}
 function ahNext(ms){var t=AH.tok;setTimeout(function(){if(t!==AH.tok||!AH.on)return;ahHit()},Math.round(ms/AH.spd))}
 function ahBan(t,ms){var b=document.getElementById('ah-ban');if(!b)return;b.innerHTML=t;b.classList.remove('on');void b.offsetWidth;b.classList.add('on');clearTimeout(AH.bt);AH.bt=setTimeout(function(){b.classList.remove('on')},ms||1200)}
-function ahSpawn(){var A=window.RPG_AUTO,si=ahSI();AH.dying=false;AH.elite=!AH.boss&&!AH.hid&&Math.random()*100<A.eliteP();AH.max=A.mhp(AH.st,AH.boss,AH.elite,AH.hid);AH.tre=(!AH.boss&&!AH.hid&&!AH.elite&&Math.random()*100<TRE_AH.p/Math.max(.01,TRE.p)*100)?L.treRoll():null;if(AH.tre)AH.max=Math.round(AH.max*TRE.hp/100);AH.dl=(!AH.hid&&!AH.tre&&(AH.boss||!AH.elite))?DLX.rollMon(!!AH.boss):null;if(AH.dl)AH.max=Math.round(AH.max*AH.dl.hp);AH.dlh=null;AH.frz=0;AH.hp=AH.max;AH.n=0;
+function ahSpawn(){var A=window.RPG_AUTO,si=ahSI();AH.dying=false;AH.elite=!AH.boss&&!AH.hid&&Math.random()*100<A.eliteP();AH.max=A.mhp(AH.st,AH.boss,AH.elite,AH.hid);AH.tre=(!AH.boss&&!AH.hid&&!AH.elite&&Math.random()*100<TRE_AH.p/Math.max(.01,TRE.p)*100)?L.treRoll():((!AH.boss&&!AH.hid&&!AH.elite)?L.clnRoll():null);if(AH.tre)AH.max=Math.round(AH.max*TRE.hp/100);AH.dl=(!AH.hid&&!AH.tre&&(AH.boss||!AH.elite))?DLX.rollMon(!!AH.boss):null;if(AH.dl)AH.max=Math.round(AH.max*AH.dl.hp);AH.dlh=null;AH.frz=0;AH.hp=AH.max;AH.n=0;
  var bg=document.getElementById('ah-bg'),u=A.bg(si,AH.hid),sk=A.sky(si);if(bg)bg.style.background=u?'url("'+u+'") center bottom/cover no-repeat':'linear-gradient('+sk[0]+','+sk[1]+')';
  var art=document.getElementById('ah-art');if(art){art.innerHTML=AH.tre?L.treArt(AH.tre):AH.dl?'':A.art(si,AH.boss,AH.hid);if(AH.dl){AH.dlh=DLX.mountMon(art,AH.dl);art.parentNode.style.setProperty('--dlc',AH.dl.col)}art.style.filter=AH.hid&&!A.hidImg()?'hue-rotate(150deg) saturate(1.7) drop-shadow(0 0 14px #b46cff)':'';art.parentNode.className='ah-mon'+(AH.boss?' boss':'')+(AH.hid?' hid':'')+(AH.elite?' elite':'')+(AH.tre?' tre':'')+(AH.dl?' dlm':'');try{art.parentNode.animate([{transform:'translateY(-30px) scale(.6)',opacity:0},{transform:'none',opacity:1}],{duration:380,easing:'cubic-bezier(.2,1.4,.4,1)'})}catch(_){}}
- var mn=document.getElementById('ah-mn');if(mn)mn.textContent=AH.dl?(AH.boss?'👑 ':'')+'['+AH.dl.gn+'] '+AH.dl.ko:AH.hid?'🕳 '+A.hidName():AH.boss?'👑 '+A.name(si,true):(AH.tre?'💰 '+L.TRE_NM[AH.tre]:(AH.elite?'⭐ 정예 ':'')+A.name(si,false));if(AH.tre)ahBan('💰 '+L.TRE_NM[AH.tre]+' 등장!<small>잡으면 황금 보따리!</small>',1200);
+ var mn=document.getElementById('ah-mn');if(mn)mn.textContent=AH.dl?(AH.boss?'👑 ':'')+'['+AH.dl.gn+'] '+AH.dl.ko:AH.hid?'🕳 '+A.hidName():AH.boss?'👑 '+A.name(si,true):(AH.tre?(AH.tre==='cln'?'🃏 ':'💰 ')+L.TRE_NM[AH.tre]:(AH.elite?'⭐ 정예 ':'')+A.name(si,false));if(AH.tre)ahBan((AH.tre==='cln'?'🃏 ':'💰 ')+L.TRE_NM[AH.tre]+' 등장!<small>'+(AH.tre==='cln'?'잡으면 카드와 뽑기권!':'잡으면 황금 보따리!')+'</small>',1200);
  if(AH.boss)ahBan(AH.hid?'🕳 히든보스 등장!':'👑 보스 등장!',1100);ahUi()}
 function ahUi(){var A=window.RPG_AUTO,si=ahSI(),q=function(i){return document.getElementById(i)};if(!q('ah-ov'))return;
  q('ah-stage').textContent='STAGE '+(AH.st+1)+' · '+A.stName(si);var p=Math.max(0,AH.hp/AH.max*100),pp=Math.max(0,AH.php/AH.pmax*100);
@@ -15339,7 +15342,7 @@ function ahMon(){var A=window.RPG_AUTO,t=AH.tok,m=document.getElementById('ah-mo
   if(AH.php>0&&AH.php<=AH.pmax*GOLD.pot/100&&AH.pot>0){AH.pot--;AH.php=Math.min(AH.pmax,AH.php+Math.round(AH.pmax*.25));ahNum('🧪+'+Math.round(AH.pmax*.25),'heal',22)}
   ahUi();if(AH.php<=0){ahDie();return}if(AH.hp<=0){ahKill();return}ahNext(GOLD.spd)},300/AH.spd)}
 function ahKill(){if(AH.dying)return;AH.dying=true;try{window.JDFX&&JDFX.ah.kill(AH.boss||AH.hid)}catch(_){}var t=AH.tok,A=window.RPG_AUTO,wasB=AH.boss,wasH=AH.hid,gk=Math.round(L.goldKill(AH.st,wasB,AH.elite,wasH)*(AH.dl?AH.dl.gold:1));
- if(AH.low){gk=Math.max(1,Math.round(gk*LOWA.g));L.addGold(gk,document.getElementById('ah-art'));AH.sg+=gk;if(AH.tre){var pl=Math.round(L.pouch(null,true)*LOWA.g);if(pl>0){L.addGold(pl);AH.sg+=pl}}try{lowCube(wasB||wasH,AH.elite)}catch(_){}}else{var lf=ahDayLeft();gk=Math.min(gk,lf);if(gk>0){L.addGold(gk,document.getElementById('ah-art'));AH.sg+=gk;ahDayAdd(gk)}if(AH.tre){lf=ahDayLeft();var pv=lf>0?L.pouch(null,true):0;pv=Math.min(pv,lf);if(pv>0){L.addGold(pv);AH.sg+=pv;ahDayAdd(pv)}AH.pch=(AH.pch||0)+1}}AH.kills++;if(!AH.low&&ahDayLeft()<=0){AH.on=false;AH.tok++;ahUi();ahBan('⛔ 오늘 골드 다 모았어요!<small>하루 '+goldFmt(AH_CAP.day)+' · 내일 또 만나요</small>',4000);return}L.noteSt(AH.st);
+ if(AH.low){gk=Math.max(1,Math.round(gk*LOWA.g));L.addGold(gk,document.getElementById('ah-art'));AH.sg+=gk;if(AH.tre==='cln'){L.clownKill(null)}else if(AH.tre){var pl=Math.round(L.pouch(null,true)*LOWA.g);if(pl>0){L.addGold(pl);AH.sg+=pl}}try{lowCube(wasB||wasH,AH.elite)}catch(_){}}else{var lf=ahDayLeft();gk=Math.min(gk,lf);if(gk>0){L.addGold(gk,document.getElementById('ah-art'));AH.sg+=gk;ahDayAdd(gk)}if(AH.tre==='cln'){L.clownKill(null)}else if(AH.tre){lf=ahDayLeft();var pv=lf>0?L.pouch(null,true):0;pv=Math.min(pv,lf);if(pv>0){L.addGold(pv);AH.sg+=pv;ahDayAdd(pv)}AH.pch=(AH.pch||0)+1}}AH.kills++;if(!AH.low&&ahDayLeft()<=0){AH.on=false;AH.tok++;ahUi();ahBan('⛔ 오늘 골드 다 모았어요!<small>하루 '+goldFmt(AH_CAP.day)+' · 내일 또 만나요</small>',4000);return}L.noteSt(AH.st);
  if(AH.dlh)DLX.die(AH.dlh);else try{var m=document.getElementById('ah-mon');m.animate([{opacity:1,transform:'none'},{opacity:0,transform:'scale(1.3) rotate(8deg)'}],{duration:300/AH.spd,fill:'forwards'})}catch(_){}
  AH.php=Math.min(AH.pmax,AH.php+Math.round(AH.pmax*(wasB?.5:.25)));
  var portal=false;if(wasH){AH.hid=false;AH.boss=false;AH.wave=AH.hwave||0;if(AH.wave>=5){AH.wave=5;AH.boss=true}ahBan('🕳 히든보스 격파!<small>💰 +'+goldFmt(gk)+'</small>',1500)}
@@ -15359,8 +15362,15 @@ var TRE={p:10,hp:150};
 var TRE_W=[50,30,10,5,4,1];
 var TRE_V=[50000,100000,300000,500000,800000,1200000];
 var TRE_AH={p:1};   /* [v92] 자동사냥(메인·낮은 곳)에서는 황금고블린·미믹이 TRE_AH.p% 확률로만 나와요 (플레이는 TRE.p% 그대로) */
-L.TRE=TRE;L.TRE_W=TRE_W;L.TRE_V=TRE_V;L.TRE_NM={gob:'황금고블린',mim:'미믹'};
-L.treRoll=function(){if(!sfOn()||(window.jdpOn&&!window.jdpOn('treas')))return null;return Math.random()*100<TRE.p?(Math.random()<.5?'gob':'mim'):null};
+L.TRE=TRE;L.TRE_W=TRE_W;L.TRE_V=TRE_V;L.TRE_NM={gob:'황금고블린',mim:'미믹',cln:'카드광대'};
+var CLN={p:6,ah:3},CLN_W=[30,30,20,12,6,2];L.CLN=CLN;
+/* [v123] 🃏 카드광대: 황금고블린처럼 일반 몬스터 자리에 CLN.p% (자동사냥은 CLN.ah%) · 잡으면 카드 1장(고급~유일) + 뽑기권 */
+L.treRoll=function(){if(!sfOn()||(window.jdpOn&&!window.jdpOn('treas')))return null;if(Math.random()*100<TRE.p)return Math.random()<.5?'gob':'mim';return Math.random()*100<CLN.p?'cln':null};
+L.clnRoll=function(){if(!sfOn()||(window.jdpOn&&!window.jdpOn('treas')))return null;return Math.random()*100<CLN.ah?'cln':null};
+L.clownKill=function(el){var D=L.dlx;try{dlLoad()}catch(_){}if(!L.dlxOk||!dlInit()){L.addGold(300000,el);toast('🃏 카드광대 선물 💰 '+goldFmt(300000));return}
+ var g=wpick(CLN_W)+1,u=dlRand(g),o=[];if(u){dlAdd(u.k);o.push({t:'🃏 카드광대 선물! ['+DLGN[u.g-1]+'] '+esc(u.ko),c:DLCOL[u.g-1],k:u.k})}
+ D.t2=(D.t2|0)+10;D.t1=(D.t1|0)+20;o.push({t:'🎟 고급 뽑기권 +10',c:'#ffd23f'});o.push({t:'🎫 일반 뽑기권 +20'})
+ D.ck=(D.ck|0)+1;dlSave();dlPop(o)};
 L.pouchRoll=function(){var s=0,i;for(i=0;i<TRE_W.length;i++)s+=TRE_W[i];var r=Math.random()*s;for(i=0;i<TRE_W.length;i++){r-=TRE_W[i];if(r<0)return TRE_V[i]||0}return TRE_V[TRE_V.length-1]||0};
 var POUCH_SVG='<svg viewBox="0 0 100 100" class="jd-pch-svg"><ellipse cx="50" cy="92" rx="30" ry="5" fill="#0005"/><path d="M28 40 Q12 60 18 80 Q24 94 50 94 Q76 94 82 80 Q88 60 72 40 Z" fill="#c98a2a" stroke="#4a2a00" stroke-width="3"/><path d="M30 44 Q50 52 70 44" fill="none" stroke="#7a4a10" stroke-width="3"/><path d="M36 40 Q30 28 38 22 Q50 30 62 22 Q70 28 64 40 Z" fill="#e0a640" stroke="#4a2a00" stroke-width="3"/><path d="M34 41 Q50 47 66 41" fill="none" stroke="#c0392b" stroke-width="5" stroke-linecap="round"/><circle cx="50" cy="68" r="13" fill="#ffd23f" stroke="#8a5a00" stroke-width="3"/><text x="50" y="74" text-anchor="middle" font-size="16" font-weight="900" fill="#8a5a00">G</text><circle cx="40" cy="20" r="5" fill="#ffd23f" stroke="#8a5a00" stroke-width="2"/><circle cx="58" cy="16" r="4" fill="#ffe680" stroke="#8a5a00" stroke-width="2"/></svg>';
 /* 보따리 열기 연출 + 골드 지급 → 받은 골드 */
@@ -15370,7 +15380,8 @@ L.pouch=function(el,skipAdd){var v=L.pouchRoll();if(!v)return 0;if(!skipAdd)L.ad
   document.body.appendChild(e);if(big||mid){for(var i=0;i<(big?26:14);i++){var c=document.createElement('i');c.className='jd-coin';c.style.left=(50+(Math.random()*60-30))+'%';c.style.setProperty('--dx',(Math.random()*240-120)+'px');c.style.setProperty('--dl',(Math.random()*.4)+'s');e.appendChild(c)}}
   setTimeout(function(){e.remove()},big?2600:1900)}catch(_){}
  try{if(el)goldFly(el,v)}catch(_){}return v};
-L.treArt=function(k){if(k==='mim')return '<svg class="rp-img" viewBox="0 0 120 120" preserveAspectRatio="xMidYMax meet"><ellipse cx="60" cy="112" rx="42" ry="6" fill="#0005"/>'
+var CLN_SVG='<svg class="rp-img" viewBox="0 0 120 120" preserveAspectRatio="xMidYMax meet"><ellipse cx="60" cy="113" rx="38" ry="6" fill="#0005"/><ellipse cx="46" cy="110" rx="12" ry="5" fill="#2d3a8c" stroke="#10163f" stroke-width="2.5"/><ellipse cx="74" cy="110" rx="12" ry="5" fill="#2d3a8c" stroke="#10163f" stroke-width="2.5"/><path d="M36 108 Q34 80 60 76 Q86 80 84 108 Z" fill="#c0392b" stroke="#3a0a12" stroke-width="3"/><path d="M60 78 V108" stroke="#3a0a12" stroke-width="2.5"/><circle cx="60" cy="90" r="3.5" fill="#ffd23f"/><circle cx="60" cy="100" r="3.5" fill="#ffd23f"/><path d="M82 88 Q90 84 92 76" stroke="#3a0a12" stroke-width="11" fill="none" stroke-linecap="round"/><path d="M82 88 Q90 84 92 76" stroke="#c0392b" stroke-width="7" fill="none" stroke-linecap="round"/><g transform="rotate(14 98 70)"><rect x="87" y="48" width="22" height="30" rx="3" fill="#fff" stroke="#3a0a12" stroke-width="2.5"/><text x="98" y="69" text-anchor="middle" font-size="16" fill="#e0262e" font-weight="900">&#9829;</text><text x="92" y="58" font-size="8" fill="#3a0a12" font-weight="900">A</text></g><path d="M40 77 L46 69 L52 77 L58 69 L64 77 L70 69 L76 77 L80 71 L76 82 L44 82 Z" fill="#fff" stroke="#3a0a12" stroke-width="2"/><circle cx="34" cy="46" r="11" fill="#ff7a2e" stroke="#5a2400" stroke-width="2.5"/><circle cx="86" cy="46" r="11" fill="#ff7a2e" stroke="#5a2400" stroke-width="2.5"/><ellipse cx="60" cy="54" rx="24" ry="22" fill="#fff4e0" stroke="#3a0a12" stroke-width="3"/><path d="M38 38 L60 4 L82 38 Z" fill="#7a3fd0" stroke="#2a0a5e" stroke-width="3" stroke-linejoin="round"/><circle cx="60" cy="5" r="5" fill="#ffd23f" stroke="#8a5a00" stroke-width="2"/><path d="M40 35 Q60 42 80 35" stroke="#ffd23f" stroke-width="4" fill="none"/><path d="M46 50 l5 -6 l5 6 l-5 6 Z" fill="#46d7ff" stroke="#10163f" stroke-width="2"/><path d="M64 50 l5 -6 l5 6 l-5 6 Z" fill="#46d7ff" stroke="#10163f" stroke-width="2"/><circle cx="60" cy="59" r="6" fill="#e0262e" stroke="#5a0a10" stroke-width="2"/><path d="M44 66 Q60 82 76 66 Q60 70 44 66 Z" fill="#e0262e" stroke="#5a0a10" stroke-width="2.5" stroke-linejoin="round"/></svg>';
+L.treArt=function(k){if(k==='cln')return CLN_SVG;if(k==='mim')return '<svg class="rp-img" viewBox="0 0 120 120" preserveAspectRatio="xMidYMax meet"><ellipse cx="60" cy="112" rx="42" ry="6" fill="#0005"/>'
  +'<path d="M24 44 L96 44 L96 66 L24 66 Z" fill="#1d0b24"/><ellipse cx="47" cy="54" rx="8" ry="5.5" fill="#fff"/><ellipse cx="73" cy="54" rx="8" ry="5.5" fill="#fff"/><circle cx="49" cy="55" r="2.6" fill="#5a1aa0"/><circle cx="71" cy="55" r="2.6" fill="#5a1aa0"/><path d="M38 47 l14 4 M82 47 l-14 4" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>'
  +'<rect x="20" y="62" width="80" height="46" rx="4" fill="#8a5a2b" stroke="#2e1a08" stroke-width="3"/><path d="M22 77 H98 M22 92 H98" stroke="#5e3a18" stroke-width="2.5"/><rect x="20" y="62" width="80" height="7" fill="#e0b020" stroke="#2e1a08" stroke-width="2.5"/><rect x="28" y="62" width="8" height="46" fill="#e0b020" stroke="#2e1a08" stroke-width="2.5"/><rect x="84" y="62" width="8" height="46" fill="#e0b020" stroke="#2e1a08" stroke-width="2.5"/>'
  +'<path d="M26 62 L30 52 L34 62 L38 52 L42 62 L46 52 L50 62 M70 62 L74 52 L78 62 L82 52 L86 62 L90 52 L94 62" fill="#fff" stroke="#2e1a08" stroke-width="1.8" stroke-linejoin="round"/>'
@@ -15428,10 +15439,10 @@ L.cpOpen=function(){var o=document.getElementById('cp-ov');if(o)o.remove();o=doc
    - 일반 뽑기 = 고급~영웅 (DLX_GW1) · 고급 뽑기 = 고급~전설 (DLX_GW2) · 골드로 뽑기권 사기 DLX_CFG.cost1/cost2
    - 합성: 같은 등급 DLX_CFG.syn장 → 다음 등급 성공 DLX_SYN% · 실패하면 같은 등급 1장 돌려받음 · 등급마다 DLX_CFG.pity번째 도전은 무조건 성공(천장)
    - 변신 1칸: 내 모습이 바뀌고 공격력 +DLX_TF_R% · 체력 +DLX_TF_Q% / 동료 1칸: 내가 때릴 때마다 동료가 내 데미지의 DLX_CP% 로 한 번 더 */
-var DLX_CFG={p:12,boss:10,cost1:30000,cost2:200000,syn:2,pity:20,gpity:40};
+var DLX_CFG={p:12,boss:10,cost1:30000,cost2:200000,syn:2,pity:10,gpity:40};
 var DLX_GW1=[60,30,10];
 var DLX_GW2=[28,25,20,14,9,4];   /* [v112] 변신권: 고급~유일, 40번 안에 유일 보장 */
-var DLX_SYN=[40,30,20,10,5];
+var DLX_SYN=[70,55,40,30,20,12,8,6,4,3];
 var DLX_TF_R=[3,5,8,12,18,25,32,40,50,62,80];   /* [v112] 11등급 (명계~절대신은 임시값) */
 var DLX_TF_Q=[2,4,6,9,13,18,24,30,38,48,60];
 var DLX_CP=[10,15,22,30,40,55,68,82,100,120,150];
@@ -15441,7 +15452,7 @@ var DLX_MHP=[130,160,200,260,340,450];
 var DLX_MATK=[110,120,135,150,170,200];
 var DLX_MGOLD=[2,3,5,8,12,20];
 var DLX_DROP=[20,15,10,7,5,3];
-var DLX_TK=[3,0.3,15,3,30,10,100,40];
+var DLX_TK=[8,1,25,6,50,20,100,60];
 /* [v68] 같은 등급 안의 티어: 1티어(최상) ×DLX_TIER[0] · 2티어 ×[1] · 3티어 ×[2] → 변신·동료 수치와 스킬 세기에 곱함 */
 var DLX_TIER=[1.3,1.15,1];
 /* [v99] 변신 능력치(공격력 +% · 체력 +%) 전체 % 올리기: 모든 등급·티어·각성에 (1+DLX_TFP/100)을 곱함. 0 = 그대로, 100 = 2배 (에디터 '변신 능력치 전체 +%') */ var DLX_TFP=0;
@@ -15463,12 +15474,21 @@ function dlSkTxt(u){var k=dlSk(u);return k?DLSK[u.s].d.replace('{c}',k.c).replac
 var DLX_AW={max:5,stat:[0,12,26,42,62,90],name:['각성 전','희미한 기운','푸른 오라','자줏빛 불꽃','황금 불꽃','무지개 후광'],col:['#fff','#9dffb8','#6fc4ff','#c27bff','#ffc23f','#ff5fd2']};
 function dlAwM(){var D=L.dlx;if(!D.aw||typeof D.aw!=='object')D.aw={};return D.aw}
 /* [v113] 🌟 각성: 장비 아이템을 먹여 각성 경험치를 쌓아요 (등급이 높을수록 많이 · 가끔 대성공 ×2) · 레벨 ✦1~✦5 · 레벨마다 능력치↑ + 아우라 모습이 바뀌어요 */
-var DLX_AWX={need:[200,500,1100,2200,4000],xp:[10,25,60,140,320,700,1500,3500],big:10};
+var DLX_AWX={need:[1000,1000,1000,1000,2000],xp:[10,25,60,140,320,700,1500,3500],big:10};
 function dlAw(u){var n=(u&&dlAwM()[u.k])|0;return Math.max(0,Math.min(DLX_AW.max,n))}
 function dlAwXM(){var D=L.dlx;if(!D.awx||typeof D.awx!=='object')D.awx={};return D.awx}
 function dlAwXp(u){return Math.max(0,dlAwXM()[u.k]|0)}
 function dlAwItems(gi){var out=[];Object.keys(L.own).forEach(function(k){var it=get(k);if(!it||it.br||GI[it.g]!==gi)return;if(L.lock[k]||it.st>0)return;var a=avail(k);if(a>0)out.push({k:k,n:a})});return out}
 function dlAwCnt(gi){return dlAwItems(gi).reduce(function(t,x){return t+x.n},0)}
+/* [v126] 🃏 카드 각성: 같은 등급의 '남는 카드'(×2 이상으로 겹친 장수 · 아무 캐릭터나) · 100% · ✦1~4는 1장씩, ✦5는 2장 */
+function dlAwPool(u){var pool=[];dlOfG(u.g).forEach(function(x){var n=(L.dlx.own[x.k]|0)-1;if(n>0)pool.push({k:x.k,n:n})});return pool}
+function dlAwSpare(u){return dlAwPool(u).reduce(function(s,x){return s+x.n},0)}
+function dlAwCost(a){return a>=DLX_AW.max-1?2:1}
+L.dlxAwCard=function(tk,times){var u=DLB[tk];if(!u||!L.dlx.own[tk])return null;var a=dlAw(u),lv0=a,used=0,steps=0;
+ while(a<DLX_AW.max&&steps<times){var cost=dlAwCost(a),pool=dlAwPool(u).sort(function(x,y){return y.n-x.n}),have=pool.reduce(function(s,x){return s+x.n},0);if(have<cost)break;
+  var c=cost;for(var i=0;i<pool.length&&c>0;i++){var take=Math.min(c,pool[i].n);for(var j=0;j<take;j++)dlRem(pool[i].k);c-=take}
+  a++;used+=cost;steps++}
+ if(!steps)return null;dlAwM()[tk]=a;if(a>=DLX_AW.max)dlAwXM()[tk]=0;dlSave();return {used:used,lv0:lv0,lv:a}};
 L.dlxAwFeed=function(tk,gi,n){var u=DLB[tk];if(!u||!L.dlx.own[tk]||!(gi>=0&&gi<DLX_AWX.xp.length))return null;var a=dlAw(u),lv0=a;if(a>=DLX_AW.max)return null;
  var xp=dlAwXp(u),used=0,gain=0,big=0,rm=[],list=dlAwItems(gi);
  for(var i=0;i<list.length&&used<n&&a<DLX_AW.max;i++){var c=0;while(c<list[i].n&&used<n&&a<DLX_AW.max){var g=DLX_AWX.xp[gi];if(Math.random()*100<DLX_AWX.big){g*=2;big++}xp+=g;gain+=g;used++;c++;while(a<DLX_AW.max&&xp>=DLX_AWX.need[a]){xp-=DLX_AWX.need[a];a++}if(a>=DLX_AW.max)xp=0}if(c)rm.push({k:list[i].k,n:c})}
@@ -15716,21 +15736,77 @@ document.addEventListener('animationstart',function(e){var t=e.target;if(t&&t.id
 /* 변신 능력치: 공격력%(R)·체력%(Q)에 더함 */
 var _dlOs=L.optSum;L.optSum=function(t){var s=_dlOs(t);if((t==='R'||t==='Q'||t==='G')&&dlOn()){var u=DLB[L.dlx.tf];if(u&&t!=='G')s+=t==='R'?dlR(u):dlQ(u);if(t==='R')s+=dlPow().R;if(t==='Q')s+=dlPow().Q;if(t==='G')DLX.skills().forEach(function(k){if(k.id==='gold')s+=k.v})}return s};
 /* ---- 처치 보상: 뽑기권 · 카드 ---- */
-L.dlxKill=function(kind,mon,el){if(!dlOn())return;var i={mob:0,elite:2,boss:4,hid:6}[kind]||0,o=[];
+L.dlxKill=function(kind,mon,el){try{bonKill()}catch(_){}if(!dlOn())return;var i={mob:0,elite:2,boss:4,hid:6}[kind]||0,o=[];
  if(Math.random()*100<DLX_TK[i]){L.dlx.t1++;o.push({t:'🎫 일반 뽑기권 +1'})}if(Math.random()*100<DLX_TK[i+1]){L.dlx.t2++;o.push({t:'🎟 고급 뽑기권 +1',c:'#ffd23f'})}
  if(mon&&Math.random()*100<(DLX_DROP[mon.g-1]||0)){dlAdd(mon.k);o.push({t:'✨ ['+mon.gn+'] '+mon.ko+' 만났어요! (변신·동료)',c:mon.col,k:mon.k})}
  if(!o.length)return;dlSave();dlPop(o)};
 function dlPop(o){var e=document.createElement('div');e.className='dx-pop';var k=null;o.forEach(function(x){if(x.k)k=x.k});
  e.innerHTML=(k?'<div class="dx-pcv"></div>':'')+o.map(function(x){return '<div style="color:'+(x.c||'#fff')+'">'+x.t+'</div>'}).join('');document.body.appendChild(e);if(k)dlMount(e.querySelector('.dx-pcv'),k,{aura:true});setTimeout(function(){e.remove()},k?2600:1800)}
 /* ---- 뽑기 · 합성 ---- */
-L.dlxGacha=function(type,n){var key=type===2?'t2':'t1';n=Math.min(n,L.dlx[key]|0);if(n<1)return null;L.dlx[key]-=n;var W=type===2?DLX_GW2:DLX_GW1,res=[];for(var i=0;i<n;i++){var g=wpick(W)+1;if(type===2){L.dlx.gp=(L.dlx.gp|0)+1;if(L.dlx.gp>=DLX_CFG.gpity)g=6;if(g===6)L.dlx.gp=0}var u=dlRand(g);if(u){dlAdd(u.k);res.push(u)}}dlSave();return res};
+L.dlxGacha=function(type,n){var key=type===2?'t2':'t1';n=Math.min(n,L.dlx[key]|0);if(n<1)return null;L.dlx[key]-=n;L.dlx.gn=(L.dlx.gn|0)+n;var W=type===2?DLX_GW2:DLX_GW1,res=[];for(var i=0;i<n;i++){var g=wpick(W)+1;if(type===2){L.dlx.gp=(L.dlx.gp|0)+1;if(L.dlx.gp>=DLX_CFG.gpity)g=6;if(g===6)L.dlx.gp=0}var u=dlRand(g);if(u){dlAdd(u.k);res.push(u)}}dlSave();return res};
 L.dlxBuy=function(type,n){var c=(type===2?DLX_CFG.cost2:DLX_CFG.cost1)*n;if(!L.spendGold(c))return false;L.dlx[type===2?'t2':'t1']+=n;dlSave();return true};
 /* [v112] 합성: 같은 등급의 '남는 카드'(×2 이상으로 겹친 장수) 3장(고급~전설) 또는 2장(신화~천상계)을 모으면 한 단계 위 등급의 다른 변신 1명 · 아직 없는 변신 먼저 · 처음 한 장은 안 없어져요 */
 function dlSpare(g){var n=0;dlOfG(g).forEach(function(u){var c=L.dlx.own[u.k]|0;if(c>1)n+=c-1});return n}
 L.dlxFuse=function(g){if(g<1||g>10)return null;var need=DLX_NEED[g],pool=dlOfG(g+1);if(!pool.length||dlSpare(g)<need)return null;
- var n=need;dlOfG(g).filter(function(u){return (L.dlx.own[u.k]|0)>1}).sort(function(a,b){return L.dlx.own[b.k]-L.dlx.own[a.k]}).forEach(function(u){while(n>0&&L.dlx.own[u.k]>1){L.dlx.own[u.k]--;n--}});
- var nw=pool.filter(function(u){return !L.dlx.own[u.k]}),q=nw.length?nw:pool,r=q[Math.random()*q.length|0],isNew=!L.dlx.own[r.k];dlAdd(r.k);dlSave();return {k:r.k,isNew:isNew}};
-L.dlxFuseAll=function(g){var out=[],r;while(out.length<50&&(r=L.dlxFuse(g)))out.push(r);return out};
+ var D=L.dlx;if(!D.pity)D.pity=[];D.fa=(D.fa|0)+1;var pc=D.pity[g-1]|0,cap=DLX_CFG.pity,guar=pc>=cap-1,ok=guar||Math.random()*100<(DLX_SYN[g-1]||1);
+ /* [v122] 실패하면 1장 돌려받고 천장이 쌓여요 · 운으로 성공해도 쌓인 천장은 그대로 · 천장으로 성공하면 0부터 */
+ var n=ok?need:need-1;dlOfG(g).filter(function(u){return (L.dlx.own[u.k]|0)>1}).sort(function(a,b){return L.dlx.own[b.k]-L.dlx.own[a.k]}).forEach(function(u){while(n>0&&L.dlx.own[u.k]>1){L.dlx.own[u.k]--;n--}});
+ if(!ok){D.pity[g-1]=pc+1;DLPOW=null;dlSave();return {fail:true,g:g,pity:pc+1}}
+ if(guar)D.pity[g-1]=0;D.fs=(D.fs|0)+1;
+ var nw=pool.filter(function(u){return !L.dlx.own[u.k]}),q=nw.length?nw:pool,r=q[Math.random()*q.length|0],isNew=!L.dlx.own[r.k];dlAdd(r.k);dlSave();return {k:r.k,isNew:isNew,guar:guar}}; L.dlxFuseAll=function(g){var out=[],r;while(out.length<50&&(r=L.dlxFuse(g)))out.push(r);return out};
+/* [v122] 🎁 출석 · 업적 · 유일/천계 뽑기권 */
+var BONK='jd_bonus_v1';
+function bonGet(){var o=null;try{o=JSON.parse(localStorage.getItem(BONK)||'null')}catch(_){}o=o||{};o.att=o.att||{day:0,last:'',total:0};o.ach=o.ach||{};return o}
+function bonSave(o){try{localStorage.setItem(BONK,JSON.stringify(o))}catch(_){}}
+function bonToday(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+var BKC=0;function bonKill(){BKC++;if(BKC>=10){var o=bonGet();o.k=(o.k|0)+BKC;BKC=0;bonSave(o)}}
+var CNT={own:function(){return Object.keys(L.dlx.own).length},fuse:function(){return L.dlx.fs|0},att:function(){return bonGet().att.total|0},kill:function(){return (bonGet().k|0)+BKC},cln:function(){return L.dlx.ck|0},pull:function(){return L.dlx.gn|0},fa:function(){return L.dlx.fa|0}};
+var BACH=[
+ {id:'c5',nm:'변신 5명 모으기',n:5,f:CNT.own,g:50000,t1:3},
+ {id:'c10',nm:'변신 10명 모으기',n:10,f:CNT.own,g:100000,t1:5},
+ {id:'c20',nm:'변신 20명 모으기',n:20,f:CNT.own,g:200000,t2:3},
+ {id:'c40',nm:'변신 40명 모으기',n:40,f:CNT.own,g:500000,t2:5},
+ {id:'c60',nm:'변신 60명 모으기',n:60,f:CNT.own,g:1000000,t2:10},
+ {id:'c100',nm:'변신 100명 모으기',n:100,f:CNT.own,g:3000000,t2:20},
+ {id:'f1',nm:'합성 처음 성공',n:1,f:CNT.fuse,g:100000,t2:2},
+ {id:'f10',nm:'합성 성공 10번',n:10,f:CNT.fuse,g:500000,t2:5},
+ {id:'f30',nm:'합성 성공 30번',n:30,f:CNT.fuse,g:1000000,t2:10},
+ {id:'a3',nm:'출석 3일',n:3,f:CNT.att,g:200000,t2:3},
+ {id:'a7',nm:'출석 7일',n:7,f:CNT.att,g:500000,t2:5},
+ {id:'a14',nm:'출석 14일',n:14,f:CNT.att,g:1000000,t2:10},
+ {id:'a30',nm:'출석 30일',n:30,f:CNT.att,g:3000000,t2:20},
+ {id:'k100',nm:'몬스터 100마리 처치',n:100,f:CNT.kill,g:100000,t1:3},
+ {id:'k1000',nm:'몬스터 1000마리 처치',n:1000,f:CNT.kill,g:500000,t2:5},
+ {id:'k5000',nm:'몬스터 5000마리 처치',n:5000,f:CNT.kill,g:2000000,t2:15},
+ {id:'n1',nm:'카드광대 1마리 처치',n:1,f:CNT.cln,g:200000,t2:2},
+ {id:'n20',nm:'카드광대 20마리 처치',n:20,f:CNT.cln,g:1000000,t2:10}];
+var BREP=[
+ {id:'rk',nm:'몬스터 50마리 처치',n:50,f:CNT.kill,g:50000,t1:1},
+ {id:'rp',nm:'뽑기 10번',n:10,f:CNT.pull,g:50000,t1:2},
+ {id:'rf',nm:'합성 3번 시도',n:3,f:CNT.fa,g:100000,t2:1},
+ {id:'rn',nm:'카드광대 처치',n:1,f:CNT.cln,g:100000,t2:2}];
+L.repClaim=function(id){var a=BREP.filter(function(x){return x.id===id})[0],o=bonGet();if(!a)return 0;o.rep=o.rep||{};var av=Math.floor(a.f()/a.n)-(o.rep[id]|0);if(av<1)return 0;o.rep[id]=(o.rep[id]|0)+av;var D=L.dlx;L.addGold(a.g*av);if(a.t1)D.t1=(D.t1|0)+a.t1*av;if(a.t2)D.t2=(D.t2|0)+a.t2*av;dlSave();bonSave(o);return av};
+L.dlxUseTk=function(kind){var D=L.dlx,key=kind==='c'?'tc':'tu',g=kind==='c'?9:6;if((D[key]|0)<1)return null;var u=dlRand(g);if(!u)return null;D[key]--;dlAdd(u.k);dlSave();return u};
+L.attClaim=function(){var o=bonGet(),td=bonToday();if(o.att.last===td)return null;var d=(o.att.day|0)+1;if(d>30)d=1;o.att.day=d;o.att.last=td;o.att.total=(o.att.total|0)+1;var D=L.dlx;D.t2=(D.t2|0)+20;L.addGold(1000000);var ex=[];if(d%7===0){D.tu=(D.tu|0)+1;ex.push('🎖 유일 뽑기권 ×1')}if(d===30){D.tc=(D.tc|0)+1;ex.push('🌌 천계 뽑기권 ×1')}dlSave();bonSave(o);return {day:d,ex:ex}};
+L.achClaim=function(id){var a=BACH.filter(function(x){return x.id===id})[0],o=bonGet();if(!a||o.ach[id]||a.f()<a.n)return false;o.ach[id]=1;var D=L.dlx;if(a.g)L.addGold(a.g);if(a.t1)D.t1=(D.t1|0)+a.t1;if(a.t2)D.t2=(D.t2|0)+a.t2;dlSave();bonSave(o);return true};
+L.bonOpen=function(){if(!dlInit()){toast('변신·동료를 불러오는 중이에요… 잠깐 뒤에 다시 눌러 주세요');dlLoad().then(function(ok){if(ok)L.bonOpen()});return}
+ var old=document.getElementById('bon-ov');if(old)old.remove();var o=document.createElement('div');o.id='bon-ov';o.style.cssText='position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.78);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:14px';document.body.appendChild(o);
+ var S='background:#1c2233;border:1px solid #3a4468;border-radius:12px;padding:10px;margin:8px 0;color:#e8ecf8',B='background:#2d3a63;color:#fff;border:1px solid #4a5a94;border-radius:8px;padding:7px 10px;margin:2px;font-size:13px';
+ function draw(){var D=L.dlx,b=bonGet(),td=bonToday(),done=b.att.last===td,nd=done?b.att.day:((b.att.day|0)>=30?1:(b.att.day|0)+1),h='<div style="max-width:440px;width:100%;font-size:14px"><div style="display:flex;justify-content:space-between;align-items:center;color:#fff"><b style="font-size:17px">🎁 출석 · 업적</b><button id="bon-x" style="'+B+'">닫기</button></div>';
+  h+='<div style="'+S+'"><b>📅 출석 ('+(b.att.day|0)+' / 30일)</b><div style="margin:6px 0;line-height:1.5">매일 🎟 고급 뽑기권 <b>20장</b> + 💰 <b>100만</b> 골드<br>7일마다 🎖 유일 뽑기권 1개 · 30일째 🌌 천계 뽑기권 1개</div><div style="display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin:6px 0">';
+  for(var i=1;i<=30;i++){var got=i<=(b.att.day|0)&&(done||i<nd||(b.att.day|0)>=i);h+='<div style="text-align:center;font-size:11px;border-radius:5px;padding:4px 0;background:'+(i<=(b.att.day|0)?'#2f7d4f':'#2a3350')+';'+(i%7===0||i===30?'outline:1px solid #ffd23f;':'')+'">'+(i===30?'🌌':i%7===0?'🎖':i)+'</div>'}
+  h+='</div><button id="bon-att" style="'+B+'"'+(done?' disabled':'')+'>'+(done?'오늘은 받았어요 ✅':'📅 '+nd+'일째 출석 받기')+'</button></div>';
+  h+='<div style="'+S+'"><b>🎫 내 뽑기권</b><div style="margin:6px 0">일반 <b>'+(D.t1|0)+'</b> · 고급 <b>'+(D.t2|0)+'</b></div><div>🎖 유일 뽑기권 <b>'+(D.tu|0)+'</b>장 <button data-u="u" style="'+B+'"'+((D.tu|0)<1?' disabled':'')+'>쓰기 (유일 1명)</button></div><div style="margin-top:4px">🌌 천계 뽑기권 <b>'+(D.tc|0)+'</b>장 <button data-u="c" style="'+B+'"'+((D.tc|0)<1?' disabled':'')+'>쓰기 (천계 1명)</button></div></div>';
+  h+='<div style="'+S+'"><b>🏆 업적</b>';BACH.forEach(function(a){var v=Math.min(a.f(),a.n),cl=b.ach[a.id],ok=!cl&&v>=a.n,rw='💰 '+goldFmt(a.g)+(a.t1?' · 🎫 일반 '+a.t1+'장':'')+(a.t2?' · 🎟 고급 '+a.t2+'장':'');h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin:6px 0;border-top:1px solid #2d3656;padding-top:6px"><div><div>'+a.nm+' <small>('+v+' / '+a.n+')</small></div><small style="color:#aab4d6">'+rw+'</small></div><button data-a="'+a.id+'" style="'+B+'"'+(ok?'':' disabled')+'>'+(cl?'완료':'받기')+'</button></div>'});h+='</div>';
+  h+='<div style="'+S+'"><b>🔁 반복 업적</b><div style="color:#aab4d6;font-size:12px;margin:4px 0">달성할 때마다 계속 받을 수 있어요</div>';BREP.forEach(function(a){var c=a.f(),av=Math.max(0,Math.floor(c/a.n)-(((b.rep&&b.rep[a.id])|0))),rw='💰 '+goldFmt(a.g)+(a.t1?' · 🎫 일반 '+a.t1+'장':'')+(a.t2?' · 🎟 고급 '+a.t2+'장':'');h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;margin:6px 0;border-top:1px solid #2d3656;padding-top:6px"><div><div>'+a.nm+' <small>('+(av>0?'받을 수 있어요 ×'+av:(c%a.n)+' / '+a.n)+')</small></div><small style="color:#aab4d6">'+rw+'</small></div><button data-r="'+a.id+'" style="'+B+'"'+(av>0?'':' disabled')+'>받기</button></div>'});h+='</div>';
+  h+='<div style="'+S+'"><b>💰 큐브 팔기</b><div style="margin:6px 0;color:#aab4d6;font-size:12px">낮은 큐브부터 팔 수 있어요 · 얼티밋·이터널은 못 팔아요</div>';['sus','red','black'].forEach(function(t){h+='<div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0"><span>'+CUBE_NM[t]+' ×'+(L.cb[t]|0)+' · 1개 '+goldFmt(CB_SELL[t])+'</span><button data-c="'+t+'" style="'+B+'"'+((L.cb[t]|0)<1?' disabled':'')+'>팔기</button></div>'});h+='</div></div>';
+  o.innerHTML=h;o.querySelector('#bon-x').onclick=function(){o.remove()};
+  o.querySelector('#bon-att').onclick=function(){var r=L.attClaim();if(!r){toast('오늘은 이미 받았어요');return}toast('📅 '+r.day+'일째 출석! 고급 뽑기권 20장 + 100만 골드'+(r.ex.length?' + '+r.ex.join(' + '):''));draw()};
+  o.querySelectorAll('[data-a]').forEach(function(x){x.onclick=function(){if(L.achClaim(x.dataset.a))toast('🏆 업적 보상을 받았어요');draw()}});
+  o.querySelectorAll('[data-r]').forEach(function(x){x.onclick=function(){var n=L.repClaim(x.dataset.r);if(n)toast('🔁 반복 업적 보상 ×'+n);draw()}});
+  o.querySelectorAll('[data-u]').forEach(function(x){x.onclick=function(){var u=L.dlxUseTk(x.dataset.u);if(!u){toast('쓸 수 없어요 (뽑기권이 없거나 그 등급 변신이 아직 안 열렸어요)');return}dlPop([{t:'🎉 '+DLGN[u.g-1]+' · '+esc(u.ko),c:DLCOL[u.g-1],k:u.k}]);draw()}});
+  o.querySelectorAll('[data-c]').forEach(function(x){x.onclick=function(){o.remove();L.cbSell(x.dataset.c)}})}
+ draw()};
 /* ---- [v72] 변신·동료 창: 뽑기 / 장착·변경 / 합성 / 도감 4개로 나눔 (카드 → 변신·동료) ---- */
 function D0(){return L.dlx}
 var DXU={tab:'equip',ag:0,amat:null,sel:null,keep:true,res:null,sg:1,reg:[],sres:null,mg:0,bg:1};
@@ -15793,14 +15869,14 @@ function dxRender(){var o=document.getElementById('dx-ov');if(!o){o=document.cre
   if(!list.length)h+='<div class="dx-note" style="padding:20px 0">'+(mine.length?'이 등급은 아직 없어요':'아직 가진 변신·동료가 없어요<br>🎰 뽑기를 하거나 몬스터를 잡아 보세요!')+'</div>';
   else{h+='<div class="dx-note">눌러서 고른 뒤 🦸 변신하기 / 🤝 동료로 를 누르세요 · 같은 등급이어도 1티어가 가장 세요 · 카드를 누르면 공격해요</div><div class="dx-grid live">';list.forEach(function(u){var n=D.own[u.k];h+=dxCardH(u,(DXU.sel===u.k?' sel':'')+(D.tf===u.k||D.cp===u.k?' eq':''),(n>1?'<i class="dx-n">×'+n+'</i>':'')+(D.tf===u.k?'<em>변신</em>':D.cp===u.k?'<em>동료</em>':''))});h+='</div>'}}
  else if(T==='aw'){var aown=DLU.filter(function(u){return D.own[u.k]&&dlRel(u)}),ag=DXU.ag||0,tu=DXU.sel&&DLB[DXU.sel]&&D.own[DXU.sel]?DLB[DXU.sel]:null;
-   h+='<div class="dx-note">카드를 하나 고르고 <b>장비 아이템</b>을 먹이면 <b>각성 경험치</b>가 쌓여요 · <b>등급이 높은 장비일수록</b> 경험치가 많고, 가끔 <b>🎉 대성공 ×2</b>! · 레벨이 오르면 능력치↑ · 아우라 모습이 바뀌어요 (최대 ✦5)<br><small>잠근 장비·★강화한 장비·착용 중인 장비는 안 먹어요</small></div>';
+   h+='<div class="dx-note">카드를 하나 고르고 <b>같은 등급의 남는 카드</b>(100% · ✦1~4는 1장씩, ✦5는 2장)나 <b>장비 아이템</b>(경험치)을 먹이면 각성해요 · 장비는 <b>각성 경험치</b>가 쌓여요 · <b>등급이 높은 장비일수록</b> 경험치가 많고, 가끔 <b>🎉 대성공 ×2</b>! · 레벨이 오르면 능력치↑ · 아우라 모습이 바뀌어요 (최대 ✦5)<br><small>잠근 장비·★강화한 장비·착용 중인 장비는 안 먹어요</small></div>';
    h+=dxChips(ag,'ag',true,function(x){return aown.filter(function(u){return !x||u.g===x}).length});
    if(tu){var a=dlAw(tu),full=a>=DLX_AW.max,xp=dlAwXp(tu),nd=DLX_AWX.need[a]||1;
     h+=dxDet(tu,'');
     h+='<div class="aw-box" style="--c:'+DLX_AW.col[Math.min(DLX_AW.max,a+1)]+'"><div class="aw-st">'+'✦'.repeat(a)+'<u>'+'✧'.repeat(DLX_AW.max-a)+'</u> <b>'+DLX_AW.name[a]+'</b></div>';
     h+='<div class="aw-pv">'+[0,1,2,3,4,5].map(function(i){return '<div class="aw-pi'+(i===a?' cur':'')+(i>a?' lock':'')+'"><div class="aw-pc" data-k="'+esc(tu.k)+'" data-aw="'+i+'"></div><small>'+(i?'✦'+i:'기본')+'</small></div>'}).join('')+'</div>';
     if(full)h+='<div class="aw-max">🌈 최대 각성! 더 올릴 수 없어요</div>';
-    else{h+='<div class="dx-pity"><i style="width:'+Math.min(100,xp/nd*100)+'%"></i><span>각성 경험치 '+xp+' / '+nd+'</span></div><div class="aw-gain"><span>🦸 공격력 +'+dlRn(tu,a)+'% → <b>+'+dlRn(tu,a+1)+'%</b></span><span>❤ 체력 +'+dlQn(tu,a)+'% → <b>+'+dlQn(tu,a+1)+'%</b></span><span>🤝 동료 '+dlCn(tu,a)+'% → <b>'+dlCn(tu,a+1)+'%</b></span><span>✨ 다음 모습: <b>'+DLX_AW.name[a+1]+'</b></span></div><div class="dx-sh">먹일 장비 고르기 (등급별)</div>';
+    else{h+='<div class="dx-pity"><i style="width:'+Math.min(100,xp/nd*100)+'%"></i><span>각성 경험치 '+xp+' / '+nd+'</span></div><div class="aw-gain"><span>🦸 공격력 +'+dlRn(tu,a)+'% → <b>+'+dlRn(tu,a+1)+'%</b></span><span>❤ 체력 +'+dlQn(tu,a)+'% → <b>+'+dlQn(tu,a+1)+'%</b></span><span>🤝 동료 '+dlCn(tu,a)+'% → <b>'+dlCn(tu,a+1)+'%</b></span><span>✨ 다음 모습: <b>'+DLX_AW.name[a+1]+'</b></span></div>';h+='<div class="dx-fz" style="--c:#ffd23f"><div class="dx-fzt"><b style="color:var(--c)">🃏 카드로 각성</b> <small>100% 성공</small></div><div class="dx-fzs">같은 등급 남는 카드 <b>'+dlAwSpare(tu)+'</b>장 · 다음 ✦'+(a+1)+'은 <b>'+dlAwCost(a)+'장</b> 필요 <small>(✦1~4 1장씩 · ✦5 2장)</small></div><div class="dx-db"><button class="pri" data-ac="1"'+(dlAwSpare(tu)>=dlAwCost(a)?'':' disabled')+'>카드 '+dlAwCost(a)+'장 → ✦'+(a+1)+'</button><button data-ac="9"'+(dlAwSpare(tu)>=dlAwCost(a)?'':' disabled')+'>가능한 만큼</button></div></div>';h+='<div class="dx-sh">먹일 장비 고르기 (등급별)</div>';
      var any=false;G.forEach(function(gg,gi){var c=dlAwCnt(gi);if(!c)return;any=true;h+='<div class="dx-fz" style="--c:'+gg[2]+'"><div class="dx-fzt"><b style="color:var(--c)">'+gg[1]+'</b> 장비 <small>1개당 경험치 +'+DLX_AWX.xp[gi]+'</small></div><div class="dx-fzs">먹일 수 있는 장비 <b>'+c+'</b>개</div><div class="dx-db"><button class="pri" data-af="'+gi+'" data-n="1">1개</button><button class="pri" data-af="'+gi+'" data-n="10"'+(c>=10?'':' disabled')+'>10개</button><button data-af="'+gi+'" data-n="9999">가능한 만큼</button></div></div>'});
      if(!any)h+='<div class="dx-note" style="padding:10px 0">먹일 수 있는 장비가 없어요<br>⚔ 사냥으로 장비를 모아 보세요 (잠금·★강화·착용 중인 건 제외)</div>'}
     h+='</div>'}
@@ -15827,10 +15903,10 @@ else if(T==='book'){
    +'<div class="dx-note">뽑기권은 몬스터를 잡으면 나와요 (정예·보스·히든보스일수록 잘 나와요). 일반 뽑기는 영웅까지, 고급 뽑기는 유일까지 나와요. 명계·마계·천계·천상계·절대신은 ⚗ 합성으로만 얻어요.</div>';
   if(DXU.res&&DXU.res.length)h+='<div class="dx-sh">방금 뽑은 결과</div><div class="dx-res">'+DXU.res.map(function(u){return '<div class="dx-rc g'+u.g+'" style="--c:'+DLCOL[u.g-1]+'"><div class="dx-rcv" data-k="'+esc(u.k)+'"></div><b>'+DLGN[u.g-1]+' · '+(u.t||3)+'티어</b><span>'+esc(u.ko)+'</span></div>'}).join('')+'</div>'}
  else{var sr=DXU.sres;
-   h+='<div class="dx-note">같은 등급의 <b>남는 카드</b>(×2 이상 겹친 장수)를 모으면 <b>한 단계 위 등급의 다른 변신 1명</b>으로 바뀌어요 · 아직 없는 변신이 먼저 나와요 · <b>처음 얻은 1장은 안 없어져요</b> · 명계부터는 뽑기로 안 나오고 합성으로만 얻어요</div>';
-   if(sr&&sr.length){h+='<div class="dx-sh">합성 성공! 🎉 ('+sr.length+'번)</div><div class="dx-res">'+sr.slice(0,25).map(function(r,i){var u=DLB[r.k];return '<div class="dx-rc g'+u.g+'" style="--c:'+DLCOL[u.g-1]+';--d:'+(sr.anim?Math.min(i,10)*.18:0)+'s"><div class="dx-rcv" data-k="'+esc(r.k)+'"></div><b>'+DLGN[u.g-1]+' · '+(u.t||3)+'티어'+(r.isNew?' · 🆕':'')+'</b><span>'+esc(u.ko)+'</span></div>'}).join('')+'</div><div class="dx-db" style="justify-content:center;margin:8px 0"><button class="pri" id="dx-sdone">확인</button></div>';sr.anim=false}
+   h+='<div class="dx-note">같은 등급의 <b>남는 카드</b>(×2 이상 겹친 장수)를 모으면 <b>한 단계 위 등급의 다른 변신 1명</b>으로 바뀌어요 · 아직 없는 변신이 먼저 나와요 · <b>처음 얻은 1장은 안 없어져요</b> · 실패하면 1장을 돌려받고 🎯 천장이 쌓여요 (운으로 성공해도 천장은 그대로 · 천장으로 성공하면 0부터) · 명계부터는 뽑기로 안 나오고 합성으로만 얻어요</div>';
+   if(sr&&sr.length){h+='<div class="dx-sh">'+(function(){var s=sr.filter(function(x){return !x.fail}).length;return s?'합성 성공! 🎉 ('+s+'번 성공'+(sr.length>s?' · '+(sr.length-s)+'번 실패':'')+')':'합성 실패 😢 ('+sr.length+'번)'})()+'</div><div class="dx-res">'+sr.slice(0,25).map(function(r,i){if(r.fail)return '<div class="dx-rc" style="--c:#8a8f99"><b>💥 합성 실패</b><span>천장 '+r.pity+' / '+DLX_CFG.pity+'</span></div>';var u=DLB[r.k];return '<div class="dx-rc g'+u.g+'" style="--c:'+DLCOL[u.g-1]+';--d:'+(sr.anim?Math.min(i,10)*.18:0)+'s"><div class="dx-rcv" data-k="'+esc(r.k)+'"></div><b>'+DLGN[u.g-1]+' · '+(u.t||3)+'티어'+(r.isNew?' · 🆕':'')+'</b><span>'+esc(u.ko)+'</span></div>'}).join('')+'</div><div class="dx-db" style="justify-content:center;margin:8px 0"><button class="pri" id="dx-sdone">확인</button></div>';sr.anim=false}
    for(var x=1;x<=10;x++){var sp=dlSpare(x),nd=DLX_NEED[x],al=dlOfG(x),hv=al.filter(function(u){return D.own[u.k]}).length,ok=sp>=nd;
-    h+='<div class="dx-fz" style="--c:'+DLCOL[x-1]+';--c2:'+DLCOL[x]+'"><div class="dx-fzt"><b style="color:var(--c)">'+DLGN[x-1]+'</b> → <b style="color:var(--c2)">'+DLGN[x]+'</b>'+(x>=6?' <small>합성으로만 얻는 등급</small>':'')+'</div><div class="dx-fzs">모은 변신 '+hv+' / '+al.length+'명 · 남는 카드 <b>'+sp+'</b>장</div><div class="dx-db"><button class="pri" data-fz="'+x+'"'+(ok?'':' disabled')+'>'+nd+'장 → '+DLGN[x]+' 1명</button><button data-fa="'+x+'"'+(sp>=nd*2?'':' disabled')+'>가능한 만큼 ('+Math.floor(sp/nd)+'번)</button></div></div>'}
+    h+='<div class="dx-fz" style="--c:'+DLCOL[x-1]+';--c2:'+DLCOL[x]+'"><div class="dx-fzt"><b style="color:var(--c)">'+DLGN[x-1]+'</b> → <b style="color:var(--c2)">'+DLGN[x]+'</b>'+(x>=6?' <small>합성으로만 얻는 등급</small>':'')+'</div><div class="dx-fzs">모은 변신 '+hv+' / '+al.length+'명 · 남는 카드 <b>'+sp+'</b>장<br>성공 <b>'+(DLX_SYN[x-1]||1)+'%</b> · 🎯 천장 <b>'+((L.dlx.pity&&L.dlx.pity[x-1])|0)+' / '+DLX_CFG.pity+'</b></div><div class="dx-db"><button class="pri" data-fz="'+x+'"'+(ok?'':' disabled')+'>'+nd+'장 → '+DLGN[x]+' 1명</button><button data-fa="'+x+'"'+(sp>=nd*2?'':' disabled')+'>가능한 만큼 ('+Math.floor(sp/nd)+'번)</button></div></div>'}
    h+='<div class="dx-note">🌟 절대신이 가장 높은 등급이에요</div>'}
 o.innerHTML=h+'</div>';dxWire(o)}
 function dxWire(o){var q=function(s){return o.querySelector(s)};q('#dx-x').onclick=function(){o.remove()};
@@ -15847,12 +15923,13 @@ function dxWire(o){var q=function(s){return o.querySelector(s)};q('#dx-x').oncli
  o.querySelectorAll('[data-mg]').forEach(function(b){b.onclick=function(){DXU.mg=+b.dataset.mg;dxRender()}});
  o.querySelectorAll('[data-bg]').forEach(function(b){b.onclick=function(){DXU.bg=+b.dataset.bg;DXU.sel=null;dxRender()}});
  o.querySelectorAll('[data-fz],[data-fa]').forEach(function(b){b.onclick=function(){var all=!!b.dataset.fa,g=+(b.dataset.fz||b.dataset.fa),r=all?L.dlxFuseAll(g):[L.dlxFuse(g)].filter(Boolean);if(!r.length){toast('남는 카드가 모자라요');return}r.anim=true;DXU.sres=r;dxRender();
-   var best=r.map(function(x){return DLB[x.k]}).sort(function(a,b){return b.g-a.g})[0];if(best&&best.g>=4)setTimeout(function(){dlPop([{t:'🎉 '+DLGN[best.g-1]+' 합성 성공!',c:DLCOL[best.g-1],k:best.k}])},300)}});
+   var best=r.filter(function(x){return !x.fail}).map(function(x){return DLB[x.k]}).sort(function(a,b){return b.g-a.g})[0];if(best&&best.g>=4)setTimeout(function(){dlPop([{t:'🎉 '+DLGN[best.g-1]+' 합성 성공!',c:DLCOL[best.g-1],k:best.k}])},300)}});
 var sd=q('#dx-sdone');if(sd)sd.onclick=function(){DXU.sres=null;dxRender()};
   o.querySelectorAll('[data-ag]').forEach(function(b){b.onclick=function(){DXU.ag=+b.dataset.ag;dxRender()}});
   o.querySelectorAll('.aw-pc').forEach(function(e){dlMount(e,e.dataset.k,{aw:+e.dataset.aw,fw:.9,fh:.88})});
   o.querySelectorAll('[data-af]').forEach(function(b){b.onclick=function(){var t=DXU.sel,r=L.dlxAwFeed(t,+b.dataset.af,+b.dataset.n);if(!r){toast('먹일 수 없어요 (최대 각성이거나 장비가 없어요)');return}dxRender();var up=r.lv>r.lv0;dlPop([{t:(r.big?'🎉 대성공 ×'+r.big+'! ':'')+'각성 경험치 +'+r.gain+(up?' · 🌟 각성 ✦'+r.lv+' · '+DLX_AW.name[r.lv]:''),c:up?DLX_AW.col[r.lv]:'#ffd23f',k:t}]);if(up)try{if(window.RPG_FX_AW)RPG_FX_AW(r.lv)}catch(_){}}});
-  var a3=q('[data-act="aw"]');if(a3)a3.onclick=function(){DXU.tab='aw';DXU.ag=0;dxRender()};
+  o.querySelectorAll('[data-ac]').forEach(function(b){b.onclick=function(){var t=DXU.sel,r=L.dlxAwCard(t,+b.dataset.ac);if(!r){toast('같은 등급의 남는 카드가 모자라요');return}dxRender();dlPop([{t:'🌟 카드 '+r.used+'장 → 각성 ✦'+r.lv+' · '+DLX_AW.name[r.lv],c:DLX_AW.col[r.lv],k:t}]);try{if(window.RPG_FX_AW)RPG_FX_AW(r.lv)}catch(_){}}});
+   var a3=q('[data-act="aw"]');if(a3)a3.onclick=function(){DXU.tab='aw';DXU.ag=0;dxRender()};
   var lk=q('#dx-look');if(lk)lk.onclick=function(){var on=!dlLook();try{localStorage.setItem('jd_dx_ownlook',on?'1':'0')}catch(_){}try{if(window.HeroSolo&&HeroSolo.sync)HeroSolo.sync()}catch(_){}toast(on?'👤 내 캐릭터 모습으로 봐요 (능력치는 그대로)':'🦸 변신 모습으로 봐요');dxRender()};
   var pw=q('#dx-pow');if(pw)pw.onclick=function(){DXU.tab='pow';dxRender()}}
 /* ---- 소환 연출: 마법진 → 빛기둥 → 캐릭터 등장 (등급이 높을수록 화려하게) ---- */
