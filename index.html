@@ -3897,7 +3897,7 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
     { id:'mrand', v:'v48', nm:'🗺 매 판 다른 지역에서 시작', d:'판마다 시작 지역(몬스터 묶음·배경)이 랜덤이라 새 몬스터가 골고루 나와요. 스테이지 번호·난이도는 그대로 1부터.' }
   ];
   var HIST = [
-    { v:'v127', d:'✋ 직접 할 때(끝말잇기·쿵쿵따·타일 헌트) 보상 UP: 처치 골드·큐브 ×2 · 콤보 보너스(최대 +50%) · 피버 ×1.5 · 뽑기권·카드 드롭 ×1.5 · 🃏 카드광대 10% · 💰 황금고블린·미믹 15% · 🕳 히든보스: 고급 뽑기권 20장 무조건 + 30%로 명계/마계/천계 소환권 · 💰 얼티밋 큐브 10만 · 이터널 큐브 20만 골드에 팔 수 있어요 · 🎁 출석·업적·반복 업적·카드광대를 끝말잇기와 RPG에서 같이 받아요 (처치 수도 같이 쌓여요) · 📖 도감 · 🎁 출석·업적 버튼이 RPG에도'},
+    { v:'v127', d:'🔄 RPG와 끝말잇기의 도감·장착·카드·골드가 항상 같아요 (화면이 다시 보일 때 통째로 다시 읽음) · ✋ 직접 할 때(끝말잇기·쿵쿵따·타일 헌트) 보상 UP: 처치 골드·큐브 ×2 · 콤보 보너스(최대 +50%) · 피버 ×1.5 · 뽑기권·카드 드롭 ×1.5 · 🃏 카드광대 10% · 💰 황금고블린·미믹 15% · 🕳 히든보스: 고급 뽑기권 20장 무조건 + 30%로 명계/마계/천계 소환권 · 💰 얼티밋 큐브 10만 · 이터널 큐브 20만 골드에 팔 수 있어요 · 🎁 출석·업적·반복 업적·카드광대를 끝말잇기와 RPG에서 같이 받아요 (처치 수도 같이 쌓여요) · 📖 도감 · 🎁 출석·업적 버튼이 RPG에도'},
     { v:'v126', d:'🌟 카드 각성: 같은 등급의 남는 카드로 100% 각성 (✦1~4는 1장씩 · ✦5는 2장) · 장비 경험치도 비슷한 난이도로 조정 · 🃏 카드광대 보상: 카드 1장+고급 뽑기권 10장+일반 20장'},
     { v:'v123', d:'🃏 카드광대(황금고블린처럼 나와요 · 잡으면 카드 1장+뽑기권) · 🔁 반복 업적 · 🏆 업적 단계 늘림 · 쉬운 수치: 합성 성공률↑·천장 10번·뽑기권 드롭↑'},
     { v:'v122', d:'🎁 출석(매일 고급뽑기권 20장+100만 골드 · 7일마다 유일 뽑기권 · 30일째 천계 뽑기권) · 🏆 업적(골드·뽑기권) · 💰 큐브 팔기 값 수상한 5천/레드 1만/블랙 2만 · ⚗ 합성에 성공 확률·천장(실패하면 쌓이고 운으로 성공해도 안 없어져요)'},
@@ -14811,9 +14811,14 @@ function kget(k){return db().then(function(d){return new Promise(function(res){v
 function kset(k,v){return db().then(function(d){return new Promise(function(res){var t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=function(){wgSyncMark();res()};t.onerror=res})}).catch(function(){})}
 /* [v90] 정도 RPG(따로 된 게임)와 가방 같이 쓰기: 끝말잇기가 저장하면 jd_sync_wg 표시 → RPG가 다시 읽음 · RPG가 저장하면 jd_sync → 끝말잇기가 골드·큐브·뽑기권 다시 읽음 */
 var WGS=null;function wgSyncMark(){clearTimeout(WGS);WGS=setTimeout(function(){try{localStorage.setItem('jd_sync_wg',String(Date.now()))}catch(_){}},400)}
-function wgReload(){Promise.all([kget('gold'),kget('cube'),kget('dlx')]).then(function(r){if(typeof r[0]==='number'&&L.goldOk){L.gold=r[0];try{goldUi()}catch(_){}}if(r[1]&&L.cbLoaded){L.cb=Object.assign({red:0,black:0,sus:0},r[1])}if(r[2]&&L.dlxOk){L.dlx=Object.assign(L.dlx,{t1:r[2].t1||0,t2:r[2].t2||0})}try{if(bagOn())bagRender()}catch(_){}})}
+function wgReload(){Promise.all([kget('gold'),kget('cube'),kget('dlx')]).then(function(r){if(typeof r[0]==='number'&&L.goldOk){L.gold=r[0];try{goldUi()}catch(_){}}if(r[1]&&L.cbLoaded){L.cb=Object.assign({red:0,black:0,sus:0},r[1])}if(r[2]&&L.dlxOk){/* [v127] 뽑기권만이 아니라 카드 모음·장착(변신/동료)·합성 기록까지 통째로 다시 읽어요 → RPG와 끝말잇기의 도감·장착이 항상 같아요 */
+  var nd=Object.assign({own:{},tf:null,cp:null,t1:0,t2:0,pity:[0,0,0,0,0]},r[2]);if(!Array.isArray(nd.pity))nd.pity=[0,0,0,0,0];L.dlx=nd;try{DLPOW=null}catch(_){}
+  try{[nd.tf,nd.cp].forEach(function(k){if(k&&DLB[k])dlPack(DLB[k].p)})}catch(_){}}try{if(bagOn())bagRender()}catch(_){}})}
 var WGSEEN=0;try{WGSEEN=+localStorage.getItem('jd_sync')||0}catch(_){}
 function wgCheck(){var v=0;try{v=+localStorage.getItem('jd_sync')||0}catch(_){}if(v>WGSEEN){WGSEEN=v;wgReload()}}
+/* [v127] 화면이 다시 보일 때는 표시가 없어도 무조건 저장소에서 다시 읽어요 (다른 창에서 바뀐 걸 놓치지 않게) */
+function wgForce(){try{if(!document.hidden)wgReload()}catch(_){}}
+document.addEventListener('visibilitychange',wgForce);window.addEventListener('focus',wgForce);window.addEventListener('pageshow',wgForce);
 window.addEventListener('storage',function(e){if(e.key==='jd_sync')wgCheck()});document.addEventListener('visibilitychange',function(){if(!document.hidden)wgCheck()});
 function key(it){return it.c+'|'+it.n}
 function nm(it){var s=it.n.replace(/^(갑옷|헤어|얼굴장식|얼굴|목_어깨장식|장신구|방패_보조무기|망토|신발|세트옷|무기|겉옷|투구)_/,'');if(it.br)return it.st+'성 '+(it.tr>0?s+' '+it.tr+'차':s)+'의 흔적';return (it.st>0?'★'+it.st+' ':'')+(it.un?'[미감정] ':'')+(it.xp?'[완벽] ':it.xr>=3?'[초월] ':it.xr===2?'[각성] ':'')+(it.nl===3?'[축] ':it.nl>=4?'[특] ':'')+(it.tr>0?s+' '+it.tr+'차':s)}
