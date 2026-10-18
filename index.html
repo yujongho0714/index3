@@ -13632,13 +13632,22 @@ window.jdpV = function(k, d){ return window.JDP ? JDP.v(k, d) : d; };
   }
   function baseUrl(){ var p = location.pathname; if(/\.[a-z0-9]+$/i.test(p)) p = p.replace(/[^\/]*$/, ''); else if(!/\/$/.test(p)) p += '/'; return location.origin + p; }   /* [v92] …/index.html 로 열어도 같은 폴더에서 찾기 */
   var autoBusy = false;
+  /* [v108] 조각 파일 이름에 ' (1)' 이 붙었든 안 붙었든 둘 다 시도 (폰 다운로드로 올리면 이름 뒤에 (1)이 붙기도 해요) */
+  function getPart(name, i){
+    var c = [name], a = name.replace(/ \(\d+\)(?=\.json$)/, ''); c.push(a !== name ? a : name.replace(/\.json$/, ' (1).json'));
+    return (function t(k){
+      return fetch(baseUrl() + c[k].split('/').map(encodeURIComponent).join('/'), { cache: 'no-store' }).then(function(r){
+        if(r.ok) return r; if(k + 1 < c.length) return t(k + 1); throw (i + 1) + '번 조각 파일을 못 받았어요 (' + r.status + '): ' + name;
+      });
+    })(0);
+  }
   function autoBaram(force){
     if(autoBusy) return; autoBusy = true;
     var KEY = 'jd-baram-auto', B = baseUrl(), started = false;
-    fetch(B + 'baram-data.json').then(function(r){ if(!r.ok) throw 'baram-data.json을 못 찾았어요 (' + r.status + ')'; return r.json(); }).then(function(m){
+    fetch(B + 'baram-data.json', { cache: 'no-store' }).then(function(r){ if(!r.ok) throw 'baram-data.json을 못 찾았어요 (' + r.status + ')'; return r.json(); }).then(function(m){
       if(!m || !m.files || !m.files.length) throw 'baram-data.json 내용이 비어 있어요';
       var done = ''; try{ done = localStorage.getItem(KEY) || ''; }catch(_){ }
-      if(!force && done === String(m.v)){ autoBusy = false; return; }
+      var sig = String(m.v) + '|' + m.files.join(','); if(!force && done === sig){ autoBusy = false; return; }
       if(!(window.LOOT && LOOT.applyPack)) throw '게임이 아직 준비 중이에요. 잠시 뒤 다시 눌러보세요';
       started = true;
       var res = null;
@@ -13647,15 +13656,14 @@ window.jdpV = function(k, d){ return window.JDP ? JDP.v(k, d) : d; };
           if(!res || !res.loot || !res.loot.items) throw '아이템 파일 내용이 올바르지 않아요';
           if(res.hero && res.hero.format === 'baram-hero' && res.hero.idle) heroApply(res.hero, JSON.stringify(res.hero));
           var n = LOOT.applyPack(res.loot); try{ LOOT._mf = 0; if(LOOT.moFix) LOOT.moFix(); }catch(_){ }
-          try{ localStorage.setItem(KEY, String(m.v)); }catch(_){ }
+          try{ localStorage.setItem(KEY, sig); }catch(_){ }
           try{ window.dispatchEvent(new Event('jd-hero-sex')); }catch(_){ }
           autoBusy = false;
           autoMsg('🎁 아이템 ' + n + '개를 받았어요! 🎒 가방에서 확인해요');
           return;
         }
         autoMsg('🎁 아이템 내려받는 중… (' + (i + 1) + '/' + m.files.length + ')', true);
-        var fn = String(m.files[i]).split('/').map(encodeURIComponent).join('/');
-        return fetch(B + fn).then(function(r){ if(!r.ok) throw (i + 1) + '번 조각 파일을 못 받았어요 (' + r.status + ')'; return r.json(); }).then(function(p){
+        return getPart(String(m.files[i]), i).then(function(r){ return r.json(); }).then(function(p){
           var pr = partAdd(p); if(pr.all) res = pr.all; return next(i + 1);
         });
       })(0);

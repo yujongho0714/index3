@@ -1,6 +1,6 @@
 /* 끝말잇기 오프라인 앱 — 처음 한 번 열면 전부 저장돼서 인터넷 없이도 열려요.
    게임 파일을 고쳐서 다시 올릴 때는 아래 VERSION 숫자를 하나 올려주세요 (그래야 폰이 새 파일로 바뀌어요). */
-const VERSION='v107';
+const VERSION='v108';
 const CACHE = 'jd-wordchain-' + VERSION;
 const CORE = ['./', 'index.html', 'dict-pack.json', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'favicon.png'];
 const OPTIONAL = ['ranks.json.gz', 'dict1.json.gz', 'dict2.json.gz',
@@ -35,6 +35,13 @@ self.addEventListener('fetch', e => {
       if (/index\.json$/.test(u.pathname)) { try { const res = await fetch(r); if (res && res.ok) { c.put(r, res.clone()); return res; } } catch (err) {} }   // 목록은 새 것 먼저
       const hit = await c.match(r, { ignoreSearch: true }); if (hit) return hit;
       try { const res = await fetch(r); if (res && res.ok) c.put(r, res.clone()); return res; } catch (err) { return new Response('', { status: 504, statusText: 'offline' }); }
+    })());
+    return;
+  }
+  if (same && /\/baram[-_][^\/]*\.json$/.test(u.pathname)) {   // [v108] 장비표 목록·조각은 항상 새 것 먼저 (옛 사본을 따라가지 않게)
+    e.respondWith((async () => {
+      try { const res = await fetch(r, { cache: 'no-store' }); if (res && res.ok) return res; return res; } catch (err) {}
+      const hit = await caches.match(r, { ignoreSearch: true }); return hit || new Response('', { status: 504, statusText: 'offline' });
     })());
     return;
   }
