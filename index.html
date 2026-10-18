@@ -3887,6 +3887,7 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
     { id:'mrand', v:'v48', nm:'🗺 매 판 다른 지역에서 시작', d:'판마다 시작 지역(몬스터 묶음·배경)이 랜덤이라 새 몬스터가 골고루 나와요. 스테이지 번호·난이도는 그대로 1부터.' }
   ];
   var HIST = [
+    { v:'v115', d:'🃏 도감 카드: 2중 테두리 · 홀로그램 빛이 흐르는 효과 · 명계~절대신 별이 2중 테두리 별(등급마다 색·빛 다름)'},
     { v:'v113', d:'🌟 변신·동료 각성 다시: 장비 아이템을 먹이면 각성 경험치 (등급이 높을수록 많이 · 10% 확률 대성공 ×2) · ✦5까지 레벨업'},
     { v:'v112', d:'📖 변신 도감 200명 · 11등급(명계·마계·천계·천상계·절대신 추가, 합성으로만 얻음) · 변신마다 능력치·특성 다름 · 모은 변신의 능력치가 합쳐지는 💪 도감 힘 · 합성은 남는 카드 3장(고급~전설)/2장(신화~천상계) → 한 단계 위 · 각성 삭제 · 👤 내 캐릭터 모습만 보기'},
     { v:'v98', d:'📈 스테이지마다 몬스터 체력·공격·드롭률을 조금씩 올리는 곡선 (몇 스테이지마다·몇 %씩을 에디터 패치 탭에서 고름) · 🔥 전직별 몬스터 드롭 %' },
@@ -15485,7 +15486,10 @@ function dlAuraFront(x,aw,fx,fy,cw,ch){if(aw<3)return;var t=performance.now()/10
   x.fillStyle=aw>=5?'hsl('+(((t*70)+i*40)%360)+',95%,75%)':'#fff';x.globalAlpha=.9;x.beginPath();x.moveTo(px,py-z*2);x.lineTo(px+z*.5,py-z*.5);x.lineTo(px+z*2,py);x.lineTo(px+z*.5,py+z*.5);x.lineTo(px,py+z*2);x.lineTo(px-z*.5,py+z*.5);x.lineTo(px-z*2,py);x.lineTo(px-z*.5,py-z*.5);x.closePath();x.fill()}
  x.restore()}
 var DLGN=['고급','희귀','영웅','전설','신화','유일','명계','마계','천계','천상계','절대신'],DLCOL=['#5fd38a','#4aa3ff','#b45cff','#ff9a2e','#ff4b4b','#46d7ff','#8a5cff','#ff3d2e','#9fe0ff','#ffe28a','#ff6bd6'];
-function dlStars(g){return g>6?'★★★★★★+':'★'.repeat(g)}
+/* [v115] 별: 1~6등급은 꽉 찬 별, 명계부터는 2중 테두리 별 6개 (등급마다 색·빛이 달라요) */
+function dlStars(g){var n=g>6?6:g,h='',i,S1=['#7be8e2','#ffb020','#ffffff','url(#dx-gold)','url(#dx-rb)'],S2=['#8a5cff','#ff3d2e','#8fd6ff','#ff9a2e','#ffffff'],st=g>6?' style="--s1:'+S1[g-7]+';--s2:'+S2[g-7]+'"':'';
+ for(i=0;i<n;i++)h+='<svg class="dx-sv"><use href="#dx-'+(g>6?'dstar':'star')+'"/></svg>';
+ return '<x-st class="dx-stars s'+g+'"'+st+'>'+h+'</x-st>'}
 var DLU=[],DLB={},DLI={},DLH=[],DLT=null,DLHS=new WeakMap();
 /* ===== [v112] 변신 도감 200명 · 11등급 (dex-data.json) =====
    칸: [이름, 등급번호(1고급~11절대신), 티어, 그림번호(dlx-index.json 순서), 속성, [공격력,체력,방어력,치명](%)]
@@ -15759,7 +15763,7 @@ document.head.appendChild(s)})();
 function dlTierH(u){return '<i class="dx-t t'+(u.t||3)+'">'+(u.t||3)+'티어</i>'}
 function dxStat(u){var s=dlSk(u),st=u.st;return (st?'<span>💪 모으면 도감 힘: 공격 +'+st[0]+'% · 체력 +'+st[1]+'% · 방어 +'+st[2]+'% · 치명 +'+st[3]+'%</span>':'')+'<span>🦸 변신하면: 공격력 +'+dlR(u)+'% · 체력 +'+dlQ(u)+'%</span><span>🤝 동료로 두면: 내 공격의 '+dlC(u)+'%로 한 번 더</span>'+(s?'<span class="dx-sk">✨ '+s.nm+' · '+esc(dlSkTxt(u))+'</span>':'')}
 function dxSlot(lab,k){var u=k&&DLB[k],s=u&&dlSk(u);return '<div class="dx-slot" style="--c:'+(u?DLCOL[u.g-1]:'#5a4e88')+'"><b>'+lab+'</b>'+(u?'<div class="dx-scv" data-k="'+esc(k)+'"></div><div class="dx-sn">['+DLGN[u.g-1]+'·'+(u.t||3)+'티어] '+esc(u.ko)+'</div>'+(s?'<div class="dx-ss">'+s.nm+'</div>':''):'<div class="dx-empty">비어 있어요</div>')+'</div>'}
-function dxCardH(u,cls,extra,dark){var n=L.dlx.own[u.k]||0,dk=dark!=null?dark:!n;return '<button class="dx-card g'+u.g+(dk?' no':'')+(cls||'')+'" data-k="'+esc(u.k)+'" style="--c:'+DLCOL[u.g-1]+'">'+(dk||DXU.tab==='syn'?dlThumbH(u,dk):dxLiveH(u))+'<span>'+(dk?'???':esc(u.ko))+'</span>'+(dk?'':dlTierH(u))+(!dk&&dlAw(u)?'<i class="dx-aw">'+'✦'.repeat(dlAw(u))+'</i>':'')+(extra||'')+'</button>'}
+function dxCardH(u,cls,extra,dark){var n=L.dlx.own[u.k]||0,dk=dark!=null?dark:!n;return '<button class="dx-card g'+u.g+(dk?' no':'')+(cls||'')+'" data-k="'+esc(u.k)+'" style="--c:'+DLCOL[u.g-1]+'">'+(dk||DXU.tab==='syn'?dlThumbH(u,dk):dxLiveH(u))+'<span>'+(dk?'???':esc(u.ko))+'</span>'+(dk?'':'<i class="dx-strow">'+dlStars(u.g)+'</i>'+dlTierH(u))+(!dk&&dlAw(u)?'<i class="dx-aw">'+'✦'.repeat(dlAw(u))+'</i>':'')+(extra||'')+(dk?'':'<i class="dx-fo"></i>')+'</button>'}
 function dxDet(u,btns){var g=u.g-1,n=L.dlx.own[u.k]||0;return '<div class="dx-det" style="--c:'+DLCOL[g]+'"><div class="dx-dcv"><i class="dx-rays"></i><i class="dx-ped"></i></div><div class="dx-di"><div class="dx-dg">'+DLGN[g]+' '+dlStars(u.g)+' '+dlTierH(u)+(n?' <span class="dx-awl">각성 '+'✦'.repeat(dlAw(u))+'<u>'+'✧'.repeat(DLX_AW.max-dlAw(u))+'</u></span>':'')+'</div><div class="dx-dn">'+esc(u.ko)+(n?' <small>×'+n+'</small>':'')+'</div><div class="dx-ds">'+dxStat(u)+'</div><div class="dx-db">'+(btns||'')+'<button data-act="atk">공격 보기</button></div></div></div>'}
 function dxChips(cur,attr,withAll,cnt){return '<div class="dx-sg">'+(withAll?'<button class="'+(!cur?'on':'')+'" data-'+attr+'="0" style="--c:#cfc4ea">전체'+(cnt?'<small>'+cnt(0)+'</small>':'')+'</button>':'')+[1,2,3,4,5,6,7,8,9,10,11].map(function(x){return '<button class="'+(cur===x?'on':'')+'" data-'+attr+'="'+x+'" style="--c:'+DLCOL[x-1]+'">'+DLGN[x-1]+(cnt?'<small>'+cnt(x)+'</small>':'')+'</button>'}).join('')+'</div>'}
 function dxRender(){var o=document.getElementById('dx-ov');if(!o){o=document.createElement('div');o.id='dx-ov';document.body.appendChild(o);o.addEventListener('click',function(e){if(e.target===o)o.remove()})}
@@ -15875,6 +15879,56 @@ function dxSummon(r,type,n){var old=document.getElementById('dx-sum');if(old)old
 ".dx-fz{margin:8px 0;padding:8px 10px;border-radius:12px;background:#0005;border-left:4px solid var(--c)}.dx-fzt{font-size:.95rem}.dx-fzt small{color:#bdb3d9;font-size:.7rem}.dx-fzs{font-size:.78rem;color:#e0d8ff;margin:2px 0 4px}"+
 ".dx-det .dx-ds .dx-sk{color:#ffd23f}";
 document.head.appendChild(s)})();
+/* ===== [v115] 도감 카드 꾸미기: 2중 테두리 · 홀로그램 빛 · 2중 테두리 별 ===== */
+(function(){
+ var css=
+ ".dx-stars{display:inline-flex;align-items:center;justify-content:center;gap:1px;vertical-align:middle;color:var(--c,#ffd23f)}"+
+ ".dx-stars .dx-sv{width:1.05em;height:1.05em;fill:currentColor;overflow:visible}"+
+ ".dx-stars.s7 .dx-sv,.dx-stars.s8 .dx-sv,.dx-stars.s9 .dx-sv,.dx-stars.s10 .dx-sv,.dx-stars.s11 .dx-sv{width:1.25em;height:1.25em}"+
+ ".dx-stars.s7 .dx-sv{filter:drop-shadow(0 0 3px #8a5cff)}"+
+ ".dx-stars.s8 .dx-sv{filter:drop-shadow(0 0 3px #ff3d2e);animation:dxStF 1s ease-in-out infinite alternate}.dx-stars.s8 .dx-sv:nth-child(odd){animation-delay:.35s}"+
+ "@keyframes dxStF{from{opacity:.8}to{opacity:1;filter:drop-shadow(0 0 5px #ff9a2e)}}"+
+ ".dx-stars.s9 .dx-sv{filter:drop-shadow(0 0 4px #9fe0ff)}"+
+ ".dx-stars.s10 .dx-sv{filter:drop-shadow(0 0 4px #ffc23f)}"+
+ ".dx-stars.s11{animation:dxStH 4s linear infinite}.dx-stars.s11 .dx-sv{filter:drop-shadow(0 0 5px #ff6bd6)}"+
+ "@keyframes dxStH{to{filter:hue-rotate(360deg)}}"+
+ ".dx-card{isolation:isolate}"+
+ ".dx-card i.dx-strow{position:relative;z-index:1;display:block;font-style:normal;font-size:.56rem;line-height:1;margin:0 0 2px;text-align:center}"+
+ ".dx-card.g7 i.dx-strow,.dx-card.g8 i.dx-strow,.dx-card.g9 i.dx-strow,.dx-card.g10 i.dx-strow,.dx-card.g11 i.dx-strow{font-size:.5rem;margin-bottom:3px}"+
+ ".dx-fo{position:absolute;inset:5px;border-radius:9px;border:1px solid color-mix(in srgb,var(--c) 70%,transparent);pointer-events:none;z-index:6;overflow:hidden;--fo:0;--gl:.12}"+
+ ".dx-fo::before{content:'';position:absolute;inset:0;opacity:var(--fo);mix-blend-mode:color-dodge;background:repeating-linear-gradient(115deg,#ff6b6b 0%,#ffd23f 9%,#7dffa0 18%,#6bc8ff 27%,#c46bff 36%,#ff6b6b 45%);background-size:260% 260%;background-position:calc(var(--dxp,50)*1% + var(--k,0)*1%) calc(var(--dyp,50)*1%);filter:saturate(1.2) brightness(.7) contrast(1.1);-webkit-mask:linear-gradient(#000 62%,transparent);mask:linear-gradient(#000 62%,transparent)}"+
+ ".dx-fo::after{content:'';position:absolute;inset:0;opacity:var(--gl);mix-blend-mode:soft-light;background:radial-gradient(circle at calc(var(--dxp,50)*1% + var(--k,0)*1%) calc(var(--dyp,50)*1%),#fff 0,transparent 55%)}"+
+ ".dx-card:nth-child(3n+2){--k:22}.dx-card:nth-child(3n){--k:-22}"+
+ ".dx-card.g2 .dx-fo{--gl:.16}.dx-card.g3 .dx-fo{--fo:.2;--gl:.2}"+
+ ".dx-card.g4 .dx-fo{--fo:.22;--gl:.26}.dx-card.g4 .dx-fo::before{background:repeating-linear-gradient(115deg,#ffb347 0,#fff1b8 8%,#ff8a1f 16%,#ffd27a 24%,#ffb347 32%);background-size:260% 260%}"+
+ ".dx-card.g5 .dx-fo{--fo:.3;--gl:.28}.dx-card.g5 .dx-fo::before{background:repeating-linear-gradient(115deg,#ff3b3b 0,#ffb36b 10%,#ff6a3b 20%,#ffd1a0 30%,#ff3b3b 40%);background-size:260% 260%}"+
+ ".dx-card.g6 .dx-fo{--fo:.4;--gl:.3}"+
+ ".dx-card.g7 .dx-fo{--fo:.28;--gl:.24}.dx-card.g7 .dx-fo::before{background:repeating-linear-gradient(115deg,#8a5cff 0,#2fe3d0 12%,#5a2fd0 24%,#7be8e2 36%,#8a5cff 48%);background-size:260% 260%}"+
+ ".dx-card.g8 .dx-fo{--fo:.3;--gl:.26}.dx-card.g8 .dx-fo::before{background:repeating-linear-gradient(115deg,#ff2a2a 0,#ff9a2e 12%,#ffd23f 20%,#ff2a2a 34%);background-size:260% 260%}"+
+ ".dx-card.g9 .dx-fo{--fo:.4;--gl:.34}.dx-card.g9 .dx-fo::before{background:repeating-linear-gradient(115deg,#bfeaff 0,#fff 10%,#9fe0ff 20%,#e8f7ff 30%,#bfeaff 40%);background-size:260% 260%}"+
+ ".dx-card.g10 .dx-fo{--fo:.5;--gl:.36}.dx-card.g10 .dx-fo::before{background:repeating-linear-gradient(115deg,#ffe28a 0,#fff 9%,#ffc23f 18%,#fff3b0 27%,#ffe28a 36%);background-size:260% 260%}"+
+ ".dx-card.g11 .dx-fo{--fo:.55;--gl:.4}"+
+ ".dx-card.no .dx-fo{display:none}";
+ var s=document.createElement('style');s.id='jd-dex-css2';s.textContent=css;document.head.appendChild(s);
+ var star='12,2 14.9,8.6 22,9.3 16.6,14 18.2,21 12,17.3 5.8,21 7.4,14 2,9.3 9.1,8.6';
+ var svg='<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>'+
+  '<linearGradient id="dx-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6c4"/><stop offset=".5" stop-color="#ffc23f"/><stop offset="1" stop-color="#ff9a2e"/></linearGradient>'+
+  '<linearGradient id="dx-rb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5b5b"/><stop offset=".25" stop-color="#ffd23f"/><stop offset=".5" stop-color="#5fd38a"/><stop offset=".75" stop-color="#46d7ff"/><stop offset="1" stop-color="#b45cff"/></linearGradient>'+
+  '<symbol id="dx-star" viewBox="0 0 24 24"><polygon points="'+star+'"/></symbol>'+
+  '<symbol id="dx-dstar" viewBox="0 0 24 24" overflow="visible"><polygon points="'+star+'" style="fill:var(--s1)" stroke-linejoin="round"/>'+
+  '<polygon points="'+star+'" transform="translate(12 12.6) scale(.78) translate(-12 -12.6)" fill="#0d0a1c" stroke-linejoin="round"/>'+
+  '<polygon points="'+star+'" transform="translate(12 12.6) scale(.6) translate(-12 -12.6)" style="fill:var(--s2)" stroke-linejoin="round"/></symbol>'+
+  '</defs></svg>';
+ function mount(){var d=document.createElement('div');d.innerHTML=svg;document.body.appendChild(d.firstChild)}
+ if(document.body)mount();else document.addEventListener('DOMContentLoaded',mount);
+ /* 도감 창이 열려 있을 때만 빛이 천천히 흘러요 (움직임 줄이기 설정이면 가만히) */
+ var rd=false;try{rd=matchMedia('(prefers-reduced-motion: reduce)').matches}catch(_){}
+ var t0=performance.now(),last=0;
+ function tick(now){requestAnimationFrame(tick);if(rd||document.hidden||now-last<50)return;last=now;
+  if(!document.querySelector('#dx-ov .dx-card'))return;
+  var t=(now-t0)/1000,r=document.documentElement.style;r.setProperty('--dxp',(50+38*Math.sin(t*.7)).toFixed(1));r.setProperty('--dyp',(50+30*Math.cos(t*.5)).toFixed(1))}
+ requestAnimationFrame(tick);
+})();
 /* ===== [v69] 스킬·동료 이펙트 (Open Duelyst fx 그림, CC0) — <script type="application/json" id="jd-dlx-fx"> {id:{w,h,n,c,s(원래 크기 배율),src}} ===== */
 var DLFX=null,DLFI={},DLFXMAP={burn:'phoenix',poison:'curse',bolt:'heaven',crit:'crossslash',exec:'twinstrike',rage:'slashfrenzy',drain:'heal',freeze:'hailstone',stone:'tremor',charm:'mesmerize',shield:'forcefield',thorn:'clawslash',dodge:'whitehot'};
 function fxInit(){if(DLFX)return DLFX;try{var el=document.getElementById('jd-dlx-fx');DLFX=el?JSON.parse(el.textContent):{}}catch(_){DLFX={}}return DLFX}
