@@ -1,6 +1,6 @@
 /* 끝말잇기 오프라인 앱 — 처음 한 번 열면 전부 저장돼서 인터넷 없이도 열려요.
    게임 파일을 고쳐서 다시 올릴 때는 아래 VERSION 숫자를 하나 올려주세요 (그래야 폰이 새 파일로 바뀌어요). */
-const VERSION='v119';
+const VERSION='v120';
 const CACHE = 'jd-wordchain-' + VERSION;
 const CORE = ['./', 'index.html', 'dict-pack.json', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'favicon.png'];
 const OPTIONAL = ['ranks.json.gz', 'dict1.json.gz', 'dict2.json.gz',
@@ -13,8 +13,10 @@ const CDN_OK = ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.c
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
     const c = await caches.open(CACHE);
-    await c.addAll(CORE);
-    await Promise.all(OPTIONAL.map(u => c.add(u).catch(() => {})));   // 없거나 못 받아도 괜찮은 것들
+    /* [v120] 파일이 하나 없어도(예: 아이콘) 설치가 통째로 실패하지 않게: 전부 '없으면 건너뛰기'. 그리고 항상 서버에서 새로 받기(cache:'reload') */
+    const grab = u => c.add(new Request(u, { cache: 'reload' })).catch(() => {});
+    await Promise.all(CORE.map(grab));
+    await Promise.all(OPTIONAL.map(grab));   // 없거나 못 받아도 괜찮은 것들
     self.skipWaiting();
   })());
 });
