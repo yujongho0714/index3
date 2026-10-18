@@ -13656,7 +13656,7 @@ window.jdpV = function(k, d){ return window.JDP ? JDP.v(k, d) : d; };
         if(i >= m.files.length){
           if(!res || !res.loot || !res.loot.items) throw '아이템 파일 내용이 올바르지 않아요';
           if(res.hero && res.hero.format === 'baram-hero' && res.hero.idle) heroApply(res.hero, JSON.stringify(res.hero));
-          var n = LOOT.applyPack(res.loot); try{ LOOT._mf = 0; if(LOOT.moFix) LOOT.moFix(); }catch(_){ }
+          var n = LOOT.applyPack(res.loot); try{ if(LOOT.purgeOld) LOOT.purgeOld(); }catch(_){ } try{ LOOT._mf = 0; if(LOOT.moFix) LOOT.moFix(); }catch(_){ }
           try{ localStorage.setItem(KEY, sig); }catch(_){ }
           try{ window.dispatchEvent(new Event('jd-hero-sex')); }catch(_){ }
           autoBusy = false;
@@ -14924,7 +14924,7 @@ var MOALIAS={"weapon":{"[탐험]칠지천환화도":"칠지천지환구겸","귀
 function moNm(mc,b){var a=MOALIAS[mc];return (a&&a[b])||b}
 L.moName=moNm;
 function moHas(it){var mc=MOC[it.c],mp=MOH.map&&MOH.map[mc];return !!(mp&&mp[moNm(mc,mohBare(it.n))])}
-function moFixEq(){try{mohLoad();if(!L.pack||!L.goldOk||!MOH.map)return false;var tot=0;for(var q in MOH.map)tot+=Object.keys(MOH.map[q]).length;if(!tot)return false;L._mf=1;var ch=0,own=0,cv=0;
+function moFixEq(){try{if(L._pp&&L.goldOk&&L.pack){L.purgeOld()}mohLoad();if(!L.pack||!L.goldOk||!MOH.map)return false;var tot=0;for(var q in MOH.map)tot+=Object.keys(MOH.map[q]).length;if(!tot)return false;L._mf=1;var ch=0,own=0,cv=0;
  /* [v103] 모션 없는(=팩에서 빠진) 가방 장비 → 같은 부위의 모션 있는 랜덤 장비로 교체 (등급·★·옵션은 그대로 따라감) */
  Object.keys(L.own).forEach(function(k){var n=L.own[k]||0;if(n<=0)return;var at=k.indexOf('@'),bk=at<0?k:k.slice(0,at),c=bk.split('|')[0];if(CI[c]===undefined||MOC[c]===undefined||!MOH.map[MOC[c]])return;var b=L.items[bk];if(b&&moHas(b))return;
   var pool=moList(c).filter(function(o){return !o.br});if(!pool.length)return;
@@ -14940,6 +14940,19 @@ function moFixEq(){try{mohLoad();if(!L.pack||!L.goldOk||!MOH.map)return false;va
   L.own[nk]=(L.own[nk]||0)+1;L.eq[c]=nk;ch++;own++});
  if(ch||cv){kset('own',L.own);kset('eq',L.eq);if(cv)saveLH();try{toast('🎽 모션이 없는 장비 '+(ch+cv)+'개를 모션 있는 장비로 바꿨어요'+(own?' (새로 받은 것 '+own+'개)':''))}catch(_){}try{if(bagOn())bagRender()}catch(_){}}return true}catch(e){return false}}
 L.moFix=moFixEq;
+/* [v111] 새 장비표(700개)를 받으면 그 밖의 옛 장비를 폰 저장소(가방·착용·잠금·숨김·등급덮어쓰기)에서 지움 */
+L.purgeOld=function(){try{if(!L.goldOk||!L.pack||!L.items){L._pp=1;return 0}
+ var n=0,bk=function(k){var q=String(k),a=q.indexOf('@');return a<0?q:q.slice(0,a)},has=function(k){return !!L.items[bk(k)]};
+ Object.keys(L.own).forEach(function(k){if(!has(k)){n+=(L.own[k]||0);delete L.own[k]}});
+ Object.keys(L.lock).forEach(function(k){if(!has(k))delete L.lock[k]});
+ Object.keys(L.hid).forEach(function(k){if(!has(k))delete L.hid[k]});
+ Object.keys(L.gov).forEach(function(k){if(!L.items[k])delete L.gov[k]});
+ Object.keys(L.eq).forEach(function(c){if(!has(L.eq[c]))delete L.eq[c]});
+ L.sel=null;L.ext=null;L.bulk=null;L._pp=0;
+ kset('gov',L.gov);kset('own',L.own);kset('eq',L.eq);saveLH();
+ if(n){try{toast('🧹 새 장비표(700개) 밖의 옛 장비 '+n+'개를 지웠어요')}catch(_){}}
+ try{if(bagOn())bagRender()}catch(_){}
+ return n}catch(e){return 0}};
 /* [v107] 모션 없는 장비 교체가 한 번도 안 도는 경우를 막음: 시작 후 1.5초마다(최대 90초) 될 때까지 다시 시도 + 가방을 열 때마다 한 번 더 */
 (function(){var t=0,iv=setInterval(function(){try{if(L._mf||++t>60){clearInterval(iv);return}moFixEq()}catch(_){}},1500)})();
 function pick(g,tr,bc){var cs=Object.keys(L.byC).filter(function(c){return CI[c]!==undefined&&moList(c).length});if(!cs.length)return null;
