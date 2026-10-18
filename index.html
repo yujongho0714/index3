@@ -3807,6 +3807,8 @@ html body #app-root .dict-card .pm-go{color:#fff !important; text-shadow:0 2px 0
 .rp-top b small{font-family:var(--cz-font,'Jua'),sans-serif; font-size:.75rem; color:#dcd2f0}
 .rp-top b em{font-style:normal; color:#ffd23f}
 .rp-top span{font-size:.66rem; color:#e8e0ff; text-shadow:0 1px 0 #000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.rp-pw{font-size:.66rem; color:#e8e0ff; text-shadow:0 1px 0 #000; white-space:nowrap; cursor:pointer; line-height:1.1}.rp-pw b{color:#ffb35a; font-weight:700}
+#game.rpg.kb-open .rp-pw{display:none}
 .rp-hp{position:relative; height:14px; border-radius:99px; background:#120d22; border:2px solid #fff4df; overflow:hidden}
 .rp-hp i{position:absolute; left:0; top:0; bottom:0; width:100%; background:linear-gradient(180deg,#ff8a8e,#ef4146 55%,#a5121a); transition:width .35s cubic-bezier(.3,.8,.3,1)}
 .rp-hp i.lag{background:#fff; opacity:.7; transition:width .8s .25s ease-out}
@@ -13517,6 +13519,7 @@ window.jdpV = function(k, d){ return window.JDP ? JDP.v(k, d) : d; };
     b = document.createElement('div'); b.id = 'rpg-box';
     b.innerHTML = '<div class="rp-sky"></div>' +
       '<div class="rp-info"><div class="rp-top"><b id="rp-name"></b><span id="rp-stage"></span></div>' +
+      '<div class="rp-pw" id="rp-pw" title="눌러서 전투력 자세히 보기">⚡ 전투력 <b id="rp-pwv">-</b></div>' +
       '<div class="rp-waves" id="rp-waves"></div></div>' +
       '<div class="rp-arena"><div class="rp-hbtns"><label class="rp-hb" title="바람 드레스업에서 내보낸 캐릭터 불러오기">🧙<input type="file" accept=".json,application/json" id="rp-hfile" hidden></label><button class="rp-hb" id="rp-sex" type="button" title="남자/여자 바꾸기">여</button><button class="rp-hb" id="rp-hreset" type="button" title="기본 캐릭터로">↺</button><button class="rp-hb" id="rp-bag" type="button" title="가방 (인벤토리)" aria-label="가방"><svg viewBox="0 0 24 24" width="16" height="16" style="display:block;margin:auto" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M8 7V6a4 4 0 0 1 8 0v1"/><path d="M5 7h14l1 13H4z"/><path d="M9 12h6"/></svg></button></div>' +
       '<div class="rp-hero-w"><canvas id="rp-hero" width="288" height="251"></canvas></div>' +
@@ -13530,6 +13533,8 @@ window.jdpV = function(k, d){ return window.JDP ? JDP.v(k, d) : d; };
     try{ var ar = b.querySelector('.rp-arena'); if(ar && !b.querySelector('#rp-pot')){ var pb = document.createElement('button'); pb.type = 'button'; pb.id = 'rp-pot'; pb.className = 'rp-pot'; pb.title = '회복물약 (최대 체력의 25%) · 스테이지마다 3개';
       pb.addEventListener('mousedown', function(e){ e.preventDefault(); }); pb.onclick = function(){ rpgPotion(); }; ar.appendChild(pb); potDraw(); } if(ar && !b.querySelector('#rp-mp')){ var mb = document.createElement('div'); mb.id = 'rp-mp'; mb.className = 'rp-mp'; var tl = rpTools(b); tl.insertBefore(mb, tl.firstChild); mpDraw(); } }catch(_){ }
     hsLabels();
+    try{ var pwE = b.querySelector('#rp-pw'); if(pwE){ pwE.onclick = function(){ try{ LOOT.pwOpen(); }catch(_){ } };
+      var pwUp = function(){ var v = document.getElementById('rp-pwv'); if(!v){ clearInterval(pwUp.t); return; } try{ if(window.LOOT && LOOT.pwTotal) v.textContent = LOOT.pwFmt(LOOT.pwTotal()); }catch(_){ } }; pwUp(); pwUp.t = setInterval(pwUp, 1000); } }catch(_){ }   /* [2026-10-19] 전투력 줄 */
     heroStart(); try{ window.LOOT&&LOOT.bind(b); }catch(_){ } try{ window.JDP&&JDP.mountBtn(b); }catch(_){ }
     try{ if(!BARS.on){ BARS.on = true; setInterval(rpgBarsPlace, 500); window.addEventListener('resize', rpgBarsPlace); var gg = document.getElementById('game'); if(gg) new MutationObserver(function(){ requestAnimationFrame(rpgBarsPlace); }).observe(gg, { attributes:true, attributeFilter:['class'] }); } rpgBarsPlace(); setTimeout(rpgBarsPlace, 80); }catch(_){ }
     return b;
@@ -14268,8 +14273,10 @@ window.jdpV = function(k, d){ return window.JDP ? JDP.v(k, d) : d; };
     try{ if(RPG.boss){ var bp = window.LOOT && LOOT.optSum('B'); if(bp){ dmg = Math.round(dmg * (1 + bp / 100)); extra = (extra ? extra + ' · ' : '') + '보스뎀 +' + bp + '%'; } } }catch(_){ }
     var bonus = j && j.querySelector('.ms-bonus'); if(bonus){ extra = (extra ? extra + ' · ' : '') + '미션 성공 · 경험치 +10%'; }   /* [2026-10-14] RPG 미션은 데미지 ×2 대신 경험치 +10% (몬스터 격파 때 적용) */
     if(ko){ dmg *= 2; extra = (extra ? extra + ' · ' : '') + '한방단어 ×2'; }
-    if(!crit){ try{ var dcr = window.DLX && DLX.dexCrit(); if(dcr > 0 && Math.random() * 100 < dcr){ crit = true; extra = (extra ? extra + ' · ' : '') + '도감 치명'; } }catch(_){ } }   /* [v112] 도감 치명 */
-    if(crit){ dmg = Math.round(dmg * 1.5); extra = (extra ? extra + ' · ' : '') + '크리티컬 ×1.5'; }
+    var cSup = false, cMul = 1.5, cDone = false;
+    try{ if(window.LOOT && LOOT.critRoll){ var c0 = LOOT.critRoll({ force:crit, noBase:true }); if(c0.cr && !crit) extra = (extra ? extra + ' · ' : '') + '치명타 발동'; crit = c0.cr; cSup = c0.sup; if(c0.cr) cMul = c0.mul; cDone = true; } }catch(_){ }   /* [2026-10-19] 치명타·극치명타 (도감 치명·전직·각성·세트로 오름) */
+    if(!cDone && !crit){ try{ var dcr = window.DLX && DLX.dexCrit(); if(dcr > 0 && Math.random() * 100 < dcr){ crit = true; extra = (extra ? extra + ' · ' : '') + '도감 치명'; } }catch(_){ } }   /* [v112] 도감 치명 */
+    if(crit){ dmg = Math.round(dmg * cMul); extra = (extra ? extra + ' · ' : '') + (cSup ? '🌟 극치명타 ×' : '크리티컬 ×') + (Math.round(cMul * 100) / 100); }
     try{ var tt = rpgTier(); if(tierSeen === null) tierSeen = tt; else if(tt > tierSeen){ tierSeen = tt; try{ var _np = (window.LOOT && LOOT.hp()) || 100, _op = RPG.pmax || 100; if(_np !== _op){ RPG.php = (RPG.php == null ? _op : RPG.php) + Math.max(0, _np - _op); RPG.pmax = _np; pDraw(); } }catch(_){ } rpgFx('rp-ban', '🥋 ' + TIER_NM[tt] + '으로 전직!<small>무기 이펙트가 한 단계 강해졌어요</small>', 1800); } else tierSeen = tt; }catch(_){ }
     try{ rpgExpFx(); }catch(_){ }
     RPG.combo++;
@@ -15320,7 +15327,7 @@ function ahUi(){var A=window.RPG_AUTO,si=ahSI(),q=function(i){return document.ge
  q('ah-k').textContent=AH.kills;try{var gmv=window.JD_GOLDM?JD_GOLDM():1;q('ah-ev').textContent=gmv>1?'🔥 골드 ×'+gmv:''}catch(_){}q('ah-sg').textContent=goldFmt(AH.sg);var hr=Math.max(1/60,(Date.now()-AH.t0)/3600000);q('ah-gh').textContent=goldFmt(AH.sg/hr);q('ah-d').textContent=AH.dead;var al=ahDayLeft();q('ah-left').textContent=AH.low?'½ 보상 · 큐브 '+Object.keys(AH.cb||{}).map(function(k){return CUBE_NM[k]+' '+AH.cb[k]}).join(' ')||'-':al===Infinity?'한도 없음':goldFmt(al)}
 function ahNum(html,cls,x){var f=document.getElementById('ah-fx');if(!f)return;var e=document.createElement('div');e.className='ah-dn '+(cls||'');e.style.left=(x==null?68:x)+'%';e.innerHTML=html;f.appendChild(e);setTimeout(function(){e.remove()},1000)}
 function ahHit(){if(!AH.on)return;var A=window.RPG_AUTO;
- var crit=Math.random()*100<(GOLD.crit+((window.DLX&&DLX.dexCrit)?DLX.dexCrit():0)),dmg=40+L.atk();if(AH.boss){var bp=L.optSum('B');if(bp)dmg=Math.round(dmg*(1+bp/100))}if(crit)dmg=Math.round(dmg*1.5);
+ var cr0=L.critRoll({}),crit=cr0.cr,dmg=40+L.atk();if(AH.boss){var bp=L.optSum('B');if(bp)dmg=Math.round(dmg*(1+bp/100))}if(crit)dmg=Math.round(dmg*cr0.mul);if(cr0.sup)try{ahNum('🌟 극치명타!','',58)}catch(_){}
  var hits=[dmg];if(Math.random()*100<Math.min(60,L.optSum('M')))hits.push(Math.round(dmg*0.5));var cpp=DLX.cpPct();if(cpp>0){hits.push(Math.max(1,Math.round(dmg*cpp/100)));setTimeout(function(){DLX.cpShoot(document.getElementById('ah-mon'))},Math.max(0,hits.length*160-260)/AH.spd)}DLX.skills().forEach(function(s){var on=s.id==='drain'||(s.id==='exec'?AH.hp/AH.max<.3:s.id==='rage'?AH.php/AH.pmax<.5:['shield','thorn','dodge','gold'].indexOf(s.id)<0&&Math.random()*100<s.c);if(!on)return;var v=Math.max(1,Math.round(dmg*s.v/100));setTimeout(function(){DLX.skFx(s.id,document.getElementById('ah-mon'),document.getElementById('ah-hero'))},300/AH.spd);if(s.id==='burn')hits.push(v*3);else if(s.id==='poison')hits.push(v*5);else if(s.id==='drain')AH.php=Math.min(AH.pmax,AH.php+v);else if(s.id==='freeze'||s.id==='stone'){AH.frz=Math.max(AH.frz||0,s.v);ahBan(s.nm+'!',700)}else hits.push(v)});
  try{A.atk()}catch(_){}try{window.JDFX&&JDFX.ah.attack(crit)}catch(_){}var he=document.getElementById('ah-hero');try{he.animate([{transform:'none'},{transform:'translateX(26px)'},{transform:'none'}],{duration:260/AH.spd})}catch(_){}
  hits.forEach(function(d,i){setTimeout(function(){if(!AH.on||AH.hp<=0||AH.dying)return;AH.hp-=d;try{window.JDFX&&JDFX.ah.hit(d,crit&&!i)}catch(_){}var g=L.wgrade(),t=tierNow();ahNum(window.RPG_GN?window.RPG_GN(d,{g:g,t:t,crit:crit&&!i,nofx:true,prev:true}):String(d),'',62+Math.random()*16);
@@ -15954,6 +15961,142 @@ function dlCpShoot(tgt,cb){dlCpSync();var h=DLCP.filter(function(x){return x.cv.
   an.onfinish=function(){o.remove();var s=u&&u.s,fx={burn:'fireimpact',poison:'greenhit',bolt:'blueelec',freeze:'frozen'}[s]||'impact';dlFxOn(tgt,fx);if(u&&u.g>=4)dlFxOn(tgt,'whitehot',{k:1.4});if(cb)cb()}},240)}
 DLX.dexDef=function(){return dlOn()?dlPow().D:0};DLX.dexCrit=function(){return dlOn()?dlPow().C:0};
 DLX.fx=dlFxOn;DLX.skFx=dlSkFx;DLX.fxTick=dlFxTick;DLX.cpShoot=dlCpShoot;
+/* ===== [2026-10-19] ⚡ 총전투력 (끝말잇기 가방·RPG 화면·정도 RPG가 이 한 곳의 계산을 같이 써요) =====
+   총전투력 = (공격 파트 + 체력 파트) × 보상 보너스
+   · 공격 파트 = 공격력 × 치명 평균배율 × (1 + 추가타) × (1 + 보스뎀 × 비중) × 10
+       치명 평균배율 = (1-치명) + 치명 × ((1-극치명) × 치명타대미지 + 극치명 × 극치명타대미지)
+       추가타 = 이중공격 + 동료 추가공격 + 카드 스킬(화상·독·번개·치명타·처형·분노·매혹) + 가시·반사
+   · 체력 파트 = 체력 ÷ ((1-방어력)(1-회피)(1-보호막)(1-빙결·석화로 막는 비율)) + 흡혈 회복
+   · 보상 보너스 = 1 + (골드획득% × 0.15 + 드랍율% × 0.15 + 경험치% × 0.1 + 몬스터당경험치 × 0.2) ÷ 100  (최대 +100%)
+   · 변신·동료: 공격%·체력%(공격력·체력에 이미 들어 있음) + 각성 ★(치명·극치명 오름) + 카드 스킬 + 동료 추가공격
+   치명타 가족(처음 만든 능력치): 기본 15% / 150% · 극치명타 0% / 250% 에서 시작, 전직 단계·각성 ★·도감 치명·세트 효과로 올라요.
+   숫자는 아래 PWCFG 에서 바꿀 수 있고, id="jd-pwcfg" 인 application/json 스크립트 칸에 {"tCrit":2} 처럼 적어도 덮어써요 (jd-optcfg 와 같은 방식). */
+var PWCFG=L.PWCFG={crit0:GOLD.crit,cd0:150,sc0:0,sd0:250,
+ tCrit:1,tCd:4,tSc:.8,tSd:10,      /* 전직 1단계마다: 치명타 확률 % · 치명타 대미지 % · 극치명타 확률 % · 극치명타 대미지 % */
+ aCd:3,aSc:.6,aSd:5,               /* 변신·동료 각성 ★ 1개마다(둘 합쳐서) */
+ sCrit:2,sSc:2,                    /* 세트 효과가 켜져 있을 때 */
+ dSc:.1,                           /* 도감 치명 1%마다 극치명타 확률 + */
+ capCrit:100,capSc:60,capCd:1000,capSd:2000,
+ atkW:10,bossW:.3,execW:.3,rageW:.3,thornW:.15,drainHits:10,
+ wGold:.15,wDrop:.15,wExp:.1,wXp:.2,ecoCap:100};
+(function(){try{var el=document.getElementById('jd-pwcfg'),j=el?JSON.parse(el.textContent):null;if(j&&typeof j==='object')Object.keys(PWCFG).forEach(function(k){if(typeof j[k]==='number'&&isFinite(j[k]))PWCFG[k]=j[k]})}catch(_){}})();
+function pwEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function pwFam(i){var C=PWCFG,aw=(i.tfAw|0)+(i.cpAw|0),t=i.tier|0,d=+i.dexC||0,so=i.setOn?1:0;
+ var c=C.crit0+d+t*C.tCrit+so*C.sCrit,cd=C.cd0+t*C.tCd+aw*C.aCd,s=C.sc0+t*C.tSc+aw*C.aSc+so*C.sSc+d*C.dSc,sd=C.sd0+t*C.tSd+aw*C.aSd;
+ cd=Math.min(C.capCd,cd);sd=Math.min(C.capSd,Math.max(sd,cd));
+ return {c:Math.min(C.capCrit,c),cd:cd,s:Math.min(C.capSc,s),sd:sd}}
+/* 지금 상태 읽기 (싸움 중에는 0.25초 동안 같은 값을 재사용) */
+var _pwM=null,_pwT=0;
+function pwRead(fresh){var n=Date.now();if(!fresh&&_pwM&&n-_pwT<250)return _pwM;
+ var on=false;try{on=dlOn()}catch(_){}
+ var r={on:on,tf:null,cp:null,sk:[],dex:{R:0,Q:0,D:0,C:0}},sh=null;
+ if(on){var p=dlPow();r.dex={R:p.R,Q:p.Q,D:p.D,C:p.C};var tu=DLB[L.dlx.tf],cu=DLB[L.dlx.cp];
+  if(tu){var ts=dlSk(tu);r.tf={k:tu.k,nm:tu.ko||tu.k,g:tu.g,aw:dlAw(tu),R:dlR(tu),Q:dlQ(tu),sk:ts}}
+  if(cu){var cs=dlSk(cu);r.cp={k:cu.k,nm:cu.ko||cu.k,g:cu.g,aw:dlAw(cu),C:dlC(cu),sk:cs}}
+  r.sk=DLX.skills().map(function(s){return {id:s.id,nm:s.nm,c:s.c,v:s.v,slot:s.slot}})}
+ else{try{sh=JSON.parse(localStorage.getItem('jd_share')||'null')}catch(_){}sh=sh||{};var dx=sh.dex||{};r.dex={R:+dx.R||0,Q:+dx.Q||0,D:+dx.D||0,C:+dx.C||0};
+  var nm=function(k){try{var u=window.J&&J.DLB&&J.DLB[k];if(u&&u.ko)return u.ko}catch(_){}return k||''};
+  if(sh.tfS){r.tf={k:sh.tf,nm:nm(sh.tf),g:sh.tfS.g,aw:sh.tfS.aw|0,R:+sh.tfS.R||0,Q:+sh.tfS.Q||0,sk:sh.tfS.sk||null};if(r.tf.sk)r.sk.push({id:r.tf.sk.id,nm:r.tf.sk.nm,c:r.tf.sk.c,v:r.tf.sk.v,slot:0})}
+  if(sh.cpS){r.cp={k:sh.cp,nm:nm(sh.cp),g:sh.cpS.g,aw:sh.cpS.aw|0,C:+sh.cpS.C||0,sk:sh.cpS.sk||null};if(r.cp.sk)r.sk.push({id:r.cp.sk.id,nm:r.cp.sk.nm,c:r.cp.sk.c,v:r.cp.sk.v,slot:1})}}
+ var si=null;try{si=L.setInfo()}catch(_){}
+ r.in={tier:tierNow(),tfAw:r.tf?r.tf.aw:0,cpAw:r.cp?r.cp.aw:0,setOn:!!si,dexC:r.dex.C};r.set=si;r.fam=pwFam(r.in);
+ _pwM=r;_pwT=n;return r}
+L.pwBust=function(){_pwM=null};
+/* 치명타·극치명타 굴리기 — 세 곳의 싸움(끝말잇기 타자·자동사냥·정도 RPG)이 같이 써요. o.force=이미 치명타 확정(PERFECT 등) · o.noBase=기본 확률은 빼고 굴림(타자 싸움은 PERFECT가 기본 치명타라서)
+   돌려주는 것: {cr:치명타?, sup:극치명타?, mul:최종 배율(치명 아니면 1)} */
+L.pwCrit=function(){return pwRead().fam};
+L.critRoll=function(o){o=o||{};var f=pwRead().fam,p=f.c-(o.noBase?PWCFG.crit0:0),cr=!!o.force||Math.random()*100<p,sup=cr&&Math.random()*100<f.s;return {cr:cr,sup:sup,mul:cr?(sup?f.sd:f.cd)/100:1}};
+/* 숫자표 만들기: over={atk,hp} 로 바로 넣으면 그 값을 써요 (정도 RPG는 자기 공격력·체력 계산식이 따로 있어서) */
+L.pwSheet=function(over,fresh){over=over||{};var r=pwRead(fresh),S={on:r.on,fam:r.fam,in:r.in,tf:r.tf,cp:r.cp,set:r.set,sk:r.sk,def:Math.min(80,r.dex.D||0),dex:r.dex};
+ S.B=L.optSum('B');S.D=L.optSum('D');S.M=L.optSum('M');S.C=L.optSum('C');S.F=L.optSum('F');S.X=L.optSum('X');S.R=L.optSum('R');S.Q=L.optSum('Q');
+ S.exp=Math.round(L.bonus()*10000)/100;S.G=L.optSum('G');
+ var db=L.dropBonus(),ds=0;Object.keys(db).forEach(function(k){ds+=db[k]*100});S.drop=Math.round(ds*10)/10;S.dropBy=db;
+ if(!r.on)r.sk.forEach(function(k){if(k.id==='gold')S.G+=k.v});   /* 켜진 변신·동료는 optSum('G')에 이미 들어 있어요 */
+ S.tfR=r.tf?r.tf.R:0;S.tfQ=r.tf?r.tf.Q:0;S.cpC=r.cp?r.cp.C:0;
+ if(!r.on){S.R+=S.tfR+r.dex.R;S.Q+=S.tfQ+r.dex.Q}   /* 꺼진 변신·동료·도감은 optSum에 안 들어 있어서 여기서 더해 '전체 공격력%·체력%'로 보여줘요 */
+ var a=over.atk,h=over.hp,J_=window.J;
+ if(a==null||h==null){var st=null;try{if(!r.on&&J_&&J_.stats&&J_.L===L)st=J_.stats()}catch(_){}
+  if(st){if(a==null)a=st.atk;if(h==null)h=st.hp}
+  else if(r.on){if(a==null)a=40+L.atk();if(h==null)h=L.hp()}
+  else{if(a==null)a=Math.round((40+L.atk())*(1+(S.tfR+r.dex.R)/100));if(h==null)h=Math.round(Math.max(100,L.hp())*(1+(S.tfQ+r.dex.Q)/100))}}
+ S.atk=Math.max(1,Math.round(a));S.hp=Math.max(1,Math.round(h));return S};
+/* 계산 (S → 전투력) */
+L.pwCalc=function(S){var W=PWCFG,f=S.fam,c=f.c/100,s=f.s/100,cd=f.cd/100,sd=f.sd/100,cm=(1-c)+c*((1-s)*cd+s*sd);
+ var dbl=window.RPG_DBL||{base:0,cap:40,mul:100},E=Math.min(dbl.cap,(dbl.base||0)+S.M)/100*((dbl.mul||100)/100),dot=1+S.D/100,drain=0,dg=0,sh=0,sk=0,x={};
+ E+=(S.cpC||0)/100;x.cp=(S.cpC||0)/100;
+ (S.sk||[]).forEach(function(k){var p=Math.min(100,k.c)/100,v=k.v/100,e=0;
+  if(k.id==='burn')e=p*3*v*dot;else if(k.id==='poison')e=p*5*v*dot;else if(k.id==='bolt'||k.id==='crit'||k.id==='charm')e=p*v;
+  else if(k.id==='exec')e=W.execW*v;else if(k.id==='rage')e=W.rageW*v;else if(k.id==='thorn')e=W.thornW*v;
+  else if(k.id==='drain')drain+=v;else if(k.id==='dodge')dg=1-(1-dg)*(1-Math.min(.6,p));else if(k.id==='shield')sh=1-(1-sh)*(1-Math.min(.6,p));
+  else if(k.id==='freeze'||k.id==='stone')sk=1-(1-sk)*(1-Math.min(.5,2*p*(k.v||1)));
+  E+=e;x.sk=(x.sk||0)+e});
+ E+=W.thornW*S.F/100*.5;
+ var bossF=1+W.bossW*S.B/100,atkP=S.atk*cm*(1+E)*bossF*W.atkW,surv=1/((1-Math.min(.8,S.def/100))*(1-dg)*(1-sh)*(1-sk)),hpP=S.hp*surv+drain*S.atk*W.drainHits;
+ var eco=1+Math.min(W.ecoCap,W.wGold*S.G+W.wDrop*S.drop+W.wExp*S.exp+W.wXp*S.X)/100;
+ return {total:Math.round((atkP+hpP)*eco),atkP:atkP,hpP:hpP,cm:cm,E:E,bossF:bossF,surv:surv,eco:eco,x:x}};
+/* 변신·동료를 뺀 전투력 → 변신·동료가 얼마나 보태는지 */
+L.pwNoCards=function(S){var N=Object.assign({},S),rt=1+S.R/100,qt=1+S.Q/100;
+ if(S.on){N.atk=Math.max(1,Math.round(40+(S.atk-40)*(1+(S.R-S.tfR)/100)/rt));N.hp=Math.max(1,Math.round(S.hp*(1+(S.Q-S.tfQ)/100)/qt))}
+ else{N.atk=Math.max(1,Math.round(S.atk*(1+S.dex.R/100)/(1+(S.tfR+S.dex.R)/100)));N.hp=Math.max(1,Math.round(S.hp*(1+S.dex.Q/100)/(1+(S.tfQ+S.dex.Q)/100)))}
+ N.cpC=0;
+ N.sk=[];N.G=S.G-(S.sk||[]).reduce(function(t,k){return t+(k.id==='gold'?k.v:0)},0);
+ N.fam=pwFam({tier:S.in.tier,tfAw:0,cpAw:0,setOn:S.in.setOn,dexC:S.in.dexC});return N};
+L.pwTotal=function(over,fresh){return L.pwCalc(L.pwSheet(over,fresh)).total};
+L.pow=function(){return L.pwTotal()};   /* 예전 전투력(공격력×10+체력)을 대신해요 */
+function pwFmt(n){n=Math.round(n||0);return n.toLocaleString('en-US')}
+function pwK(n){n=Math.round(n||0);return n>=1e8?(n/1e8).toFixed(2).replace(/\.?0+$/,'')+'억':n>=1e4?(n/1e4).toFixed(1).replace(/\.0$/,'')+'만':String(n)}
+L.pwK=pwK;L.pwFmt=pwFmt;
+function pwN(x,d){var m=Math.pow(10,d==null?1:d);return String(Math.round((+x||0)*m)/m)}
+function pwCss(){if(document.getElementById('pw-css'))return;var s=document.createElement('style');s.id='pw-css';
+ s.textContent='.pw-box{color:#fff;font-size:13px;line-height:1.45;text-align:left}.pw-big{font-size:26px;font-weight:800;color:#ff9f43;text-align:center;margin:2px 0 6px;letter-spacing:.5px}.pw-sub{display:flex;gap:6px;margin:0 0 8px}.pw-sub i{flex:1;font-style:normal;text-align:center;background:#ffffff14;border-radius:8px;padding:4px 2px;font-size:11px}.pw-sub i b{display:block;font-size:13px;color:#ffd23f}'
+ +'.pw-h{margin:9px 0 3px;padding-top:6px;border-top:1px solid #ffffff22;font-weight:700;color:#9fd0ff;font-size:12px}.pw-r{display:flex;justify-content:space-between;gap:8px;padding:1px 0}.pw-r b{color:#ffd23f;text-align:right}.pw-r small,.pw-n{color:#ffffff99;font-size:11px}.pw-n{margin:6px 0 0;white-space:pre-line}.pw-card{background:#ffffff0f;border-radius:8px;padding:5px 8px;margin:3px 0}';
+ document.head.appendChild(s)}
+/* 표 그리기: S=pwSheet() 결과 */
+L.pwBody=function(S){pwCss();var R=L.pwCalc(S),f=S.fam,row=function(a,b,c){return '<div class="pw-r"><span>'+a+(c?' <small>'+c+'</small>':'')+'</span><b>'+b+'</b></div>'},pc=function(x){return pwN(x)+'%'},h='';
+ var tot=R.atkP+R.hpP||1,N=L.pwCalc(L.pwNoCards(S)),cardPct=R.total>0?Math.max(0,Math.round((R.total-N.total)/R.total*1000)/10):0;
+ h+='<div class="pw-big">⚡ '+pwFmt(R.total)+'</div>';
+ h+='<div class="pw-sub"><i>⚔ 공격 파트<b>'+Math.round(R.atkP/tot*100)+'%</b></i><i>❤ 체력 파트<b>'+Math.round(R.hpP/tot*100)+'%</b></i><i>🍀 보상 보너스<b>×'+pwN(R.eco,2)+'</b></i><i>🦸 변신·동료<b>'+cardPct+'%</b></i></div>';
+ h+='<div class="pw-h">기본</div>'+row('⚔ 공격력',pwFmt(S.atk),'한 번 때리는 기본 데미지')+row('❤ 체력',pwFmt(S.hp))+row('🛡 방어력',pc(S.def),'몬스터에게 받는 피해 −')+row('💥 공격력 %','+'+pc(S.R))+row('💖 체력 %','+'+pc(S.Q));
+ h+='<div class="pw-h">치명타</div>'+row('🎯 치명타 확률',pc(f.c),'기본 '+PWCFG.crit0+'%')+row('💢 치명타 대미지',pc(f.cd))+row('🌟 극치명타 확률',pc(f.s),'치명타가 터졌을 때 다시 굴림')+row('☄ 극치명타 대미지',pc(f.sd))+'<div class="pw-r"><span><small>한 방 평균 배율</small></span><b>×'+pwN(R.cm,2)+'</b></div>';
+ h+='<div class="pw-h">확률·효과</div>'+row('🔁 이중공격 확률','+'+pc(S.M))+row('💘 매혹 확률','+'+pc(S.C))+row('🪞 반사','+'+pc(S.F))+row('👹 보스 데미지','+'+pc(S.B))+row('🔥 도트 데미지','+'+pc(S.D))+row('🤝 동료 추가공격',pc(S.cpC||0));
+ h+='<div class="pw-h">보상</div>'+row('💰 골드 획득','+'+pc(S.G))+row('🍀 드랍율 (등급 옵션 합)','+'+pc(S.drop))+row('✨ 획득 경험치','+'+pc(S.exp))+row('🎯 몬스터당 경험치','+'+pwN(S.X));
+ var dk=Object.keys(S.dropBy||{});if(dk.length)dk.forEach(function(g){try{h+=row('<small style="color:'+G[GI[g]][2]+'">　'+G[GI[g]][1]+' 드롭</small>','+'+Math.round(S.dropBy[g]*100)+'%')}catch(_){}});
+ h+='<div class="pw-h">🦸 변신</div>';
+ if(S.tf){h+='<div class="pw-card"><b>'+pwEsc(S.tf.nm)+'</b> <small>'+pwEsc((typeof DLGN!=='undefined'&&DLGN[S.tf.g-1])||'')+(S.tf.aw?' · 각성 ✦'+S.tf.aw:'')+'</small>'+row('공격력 / 체력','+'+pwN(S.tf.R)+'% / +'+pwN(S.tf.Q)+'%')+(S.tf.sk?row('스킬',pwEsc(S.tf.sk.nm),S.tf.sk.c+'% · '+S.tf.sk.v):'')+'</div>'}else h+='<div class="pw-n">낀 변신이 없어요</div>';
+ h+='<div class="pw-h">🤝 동료</div>';
+ if(S.cp){h+='<div class="pw-card"><b>'+pwEsc(S.cp.nm)+'</b> <small>'+pwEsc((typeof DLGN!=='undefined'&&DLGN[S.cp.g-1])||'')+(S.cp.aw?' · 각성 ✦'+S.cp.aw:'')+'</small>'+row('추가공격',pc(S.cp.C))+(S.cp.sk?row('스킬',pwEsc(S.cp.sk.nm),S.cp.sk.c+'% · '+S.cp.sk.v):'')+'</div>'}else h+='<div class="pw-n">낀 동료가 없어요</div>';
+ h+='<div class="pw-h">📖 도감 힘 · 🧩 세트</div>'+row('도감 공격 / 체력','+'+pc(S.dex.R)+' / +'+pc(S.dex.Q))+row('도감 방어 / 치명','−'+pc(S.dex.D)+' / +'+pc(S.dex.C))+row('🧩 세트 효과',S.set?'켜짐 (+'+S.set.v+')':'꺼짐')+row('🥋 전직 단계',(S.in.tier)+'단계');
+ h+='<div class="pw-n">전투력 = (공격력×치명 평균배율×추가타×10 + 체력÷받는 피해 줄이기) × 보상 보너스\n치명·극치명은 전직 단계 · 변신/동료 각성 ✦ · 도감 치명 · 세트 효과로 올라가요.</div>';
+ return h};
+/* 전체 창 (끝말잇기·정도 RPG 둘 다 이 창을 열어요) */
+L.pwOpen=function(over){var old=document.getElementById('pw-ov');if(old)old.remove();var S=L.pwSheet(over,true),o=document.createElement('div');o.id='pw-ov';
+ o.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:2147483000;background:rgba(0,0,0,.66);display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box';
+ o.innerHTML='<div style="width:100%;max-width:400px;max-height:90vh;overflow:auto;background:#1b2030;border:1px solid #ffffff33;border-radius:14px;padding:12px 14px;box-sizing:border-box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px"><b style="color:#fff;font-size:15px">⚡ 전투력</b><button type="button" data-pwx="1" style="background:#ffffff1f;color:#fff;border:0;border-radius:8px;padding:4px 10px;font-size:14px;cursor:pointer">✕</button></div><div class="pw-box">'+L.pwBody(S)+'</div></div>';
+ o.addEventListener('click',function(e){if(e.target===o||(e.target.getAttribute&&e.target.getAttribute('data-pwx')))o.remove()});document.body.appendChild(o);return o};
+/* 가방 화면에 들어가는 줄 (예전 L.powH 대신) */
+L.powH=function(){var op=L.pwOpen_,S=L.pwSheet(null,true),R=L.pwCalc(S),
+ s='<div class="lt-mu">⚡ 전투력 <b style="color:#ff9f43">'+pwFmt(R.total)+'</b> <button onclick="LOOT.pwToggle()" style="font-size:11px;padding:2px 8px">'+(L.pwOpen_?'접기':'상세')+'</button> <button onclick="LOOT.pwOpen()" style="font-size:11px;padding:2px 8px">📊 전체 보기</button></div>'
+ +'<div class="lt-mu">⚔ 공격력 <b style="color:#ffd23f">'+L.atk()+'</b></div><div class="lt-mu">❤ 최대 체력 <b style="color:#7dffa0">'+L.hp()+'</b></div>';
+ s+=L.hsH();if(!L.pwOpen_)return s;return s+'<div class="pw-box">'+L.pwBody(S)+'</div>'};
+L.pwToggle=function(){L.pwOpen_=!L.pwOpen_;bagRender()};
+/* ===== [2026-10-19] ⚖ 장비 비교: 아이템을 누르면 "이걸 끼면(벗으면) 전투력이 얼마나 오르고 내리는지, 어떤 능력치가 변하는지" ===== */
+L.pwCompare=function(k){var it=get(k);if(!it||it.br)return null;var c=it.c,old=L.eq[c],has=Object.prototype.hasOwnProperty.call(L.eq,c),isEq=old===k,A,B;
+ try{A=L.pwSheet(null,true);if(isEq)delete L.eq[c];else L.eq[c]=k;B=L.pwSheet(null,true)}finally{if(has)L.eq[c]=old;else delete L.eq[c];L.pwBust()}
+ var ra=L.pwCalc(A).total,rb=L.pwCalc(B).total,D=[['⚔ 공격력',function(s){return s.atk},0,''],['❤ 체력',function(s){return s.hp},0,''],['🛡 방어력',function(s){return s.def},1,'%'],
+  ['🎯 치명타 확률',function(s){return s.fam.c},1,'%'],['💢 치명타 대미지',function(s){return s.fam.cd},1,'%'],['🌟 극치명타 확률',function(s){return s.fam.s},1,'%'],['☄ 극치명타 대미지',function(s){return s.fam.sd},1,'%'],
+  ['💥 공격력 %',function(s){return s.R},1,'%'],['💖 체력 %',function(s){return s.Q},1,'%'],['👹 보스 데미지',function(s){return s.B},1,'%'],['🔥 도트 데미지',function(s){return s.D},1,'%'],['🔁 이중공격',function(s){return s.M},1,'%'],
+  ['💘 매혹',function(s){return s.C},1,'%'],['🪞 반사',function(s){return s.F},1,'%'],['💰 골드 획득',function(s){return s.G},1,'%'],['🍀 드랍율',function(s){return s.drop},1,'%'],['✨ 경험치',function(s){return s.exp},1,'%'],['🎯 몬스터당 경험치',function(s){return s.X},1,'']],rows=[];
+ D.forEach(function(d){var a=d[1](A),b=d[1](B);if(Math.abs(b-a)>1e-9)rows.push({n:d[0],a:a,b:b,d:b-a,dec:d[2],u:d[3]})});
+ if(!!A.set!==!!B.set)rows.push({n:'🧩 세트 효과',txt:B.set?'꺼짐 → 켜짐':'켜짐 → 꺼짐',d:B.set?1:-1});
+ return {a:ra,b:rb,rows:rows,isEq:isEq,old:old&&old!==k?get(old):null}};
+L.pwCmpH=function(k){var d=L.pwCompare(k);if(!d)return '';pwCss();var diff=d.b-d.a,pct=d.a?diff/d.a*100:0,col=diff>0?'#6dff9a':diff<0?'#ff7a7a':'#cfcfcf',ar=diff>0?'▲':diff<0?'▼':'＝',
+ sg=function(x,dec){return (x>0?'+':x<0?'−':'')+pwN(Math.abs(x),dec)},
+ t=d.isEq?'벗으면':(d.old?'지금 낀 '+pwEsc(nm(d.old))+' 대신 끼면':'끼면'),
+ h='<div class="pw-box pw-cmp" style="margin:6px 0;padding:6px 8px;border:1px solid '+col+'66;border-radius:8px;background:#00000040"><div style="font-size:11px;opacity:.8">⚖ '+t+'</div>'
+ +'<div style="font-weight:700">⚡ '+pwFmt(d.a)+' → <span style="color:'+col+'">'+pwFmt(d.b)+'</span> <span style="color:'+col+'">'+ar+' '+pwFmt(Math.abs(diff))+' ('+sg(pct,1)+'%)</span></div>';
+ if(!d.rows.length)h+='<div class="pw-n">달라지는 능력치가 없어요</div>';
+ d.rows.forEach(function(r){var up=r.d>0,c2=up?'#6dff9a':'#ff7a7a',v=r.txt||(pwN(r.a,r.dec)+r.u+' → '+pwN(r.b,r.dec)+r.u+' ('+sg(r.d,r.dec)+r.u+')');h+='<div class="pw-r"><span>'+(up?'<span style="color:#6dff9a">▲</span> ':'<span style="color:#ff7a7a">▼</span> ')+r.n+'</span><b style="color:'+c2+'">'+v+'</b></div>'});
+ return h+'</div>'};
 
 (function(){var s=document.createElement('style');s.id='jd-aw-css';s.textContent=".dx-aw{position:absolute;left:3px;bottom:16px;z-index:3;font-style:normal;font-size:.62rem;line-height:1;color:#ffe27a;text-shadow:0 0 4px #ff9a00,0 1px 0 #000;letter-spacing:-1px;pointer-events:none}.dx-awl{margin-left:4px;color:#ffe27a;font-weight:900;text-shadow:0 0 6px #ff9a00}.dx-awl u,.aw-st u{text-decoration:none;color:#fff5;text-shadow:none}.aw-box{margin:8px 0;padding:10px;border:2px solid var(--c,#ffd23f);border-radius:14px;background:linear-gradient(#1c1440,#120c2c);box-shadow:0 0 14px color-mix(in srgb,var(--c,#ffd23f) 45%,transparent)}.aw-st{text-align:center;font-size:1.15rem;color:#ffe27a;letter-spacing:2px}.aw-st b{display:block;font-size:.9rem;color:#fff;letter-spacing:0;margin-top:2px}.aw-pv{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:8px 0}.aw-pi{position:relative;text-align:center;border-radius:10px;background:#0006;padding:2px 0 3px;border:1px solid #ffffff22}.aw-pi.cur{border-color:#ffd23f;background:#ffd23f22}.aw-pi.lock{opacity:.55}.aw-pi small{display:block;font-size:.62rem;color:#ddd}.aw-pc{position:relative;width:100%;height:54px}.aw-gain{display:grid;gap:3px;font-size:.82rem;color:#e8e0ff;background:#0005;border-radius:10px;padding:7px 9px}.aw-gain b{color:#7dff9b}.aw-mats{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px;max-height:190px;overflow:auto;padding:4px 2px}.aw-m{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;border-radius:10px;border:2px solid #ffffff2a;background:#0007;color:#fff;font-size:.62rem;cursor:pointer}.aw-m.sel{border-color:var(--c,#ffd23f);box-shadow:0 0 10px var(--c,#ffd23f);background:#ffffff18}.aw-m .dx-th{width:44px;height:44px}.aw-btns{display:flex;gap:8px;margin-top:8px}.aw-btns button{flex:1;padding:10px 6px;border-radius:12px;border:2px solid #ffffff33;background:#2a1f55;color:#fff;font-weight:900}.aw-btns button.pri{background:linear-gradient(#ffb300,#ff7a00);border-color:#ffe27a;color:#2a1200}.aw-btns button:disabled{opacity:.4}.aw-max{text-align:center;padding:10px;color:#ffe27a;font-weight:900}";document.head.appendChild(s)})();
 (function(){var s=document.createElement('style');s.id='jd-dlx-css';s.textContent=".dl-cv{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}.dl-cpw{position:absolute;left:-74px;bottom:34px;width:96px;height:100px;z-index:-1;pointer-events:none;animation:dlFloat 2.4s ease-in-out infinite;filter:drop-shadow(0 0 6px #fff8)}.ah-hero .dl-cpw{left:-14%;bottom:auto;top:4%;width:38%;height:40%}@keyframes dlFloat{50%{transform:translateY(-6px)}}.dx-pop{position:fixed;left:50%;top:24%;transform:translateX(-50%);z-index:100011;pointer-events:none;background:#140e26ee;border:2px solid #ffd23f;border-radius:14px;padding:8px 16px;text-align:center;font-weight:900;font-size:1rem;line-height:1.5;text-shadow:0 0 4px #000;animation:dxPop 2.4s ease-out forwards;white-space:nowrap}.dx-pcv{position:relative;width:110px;height:110px;margin:0 auto}@keyframes dxPop{0%{opacity:0;transform:translate(-50%,20px) scale(.7)}12%{opacity:1;transform:translate(-50%,0) scale(1.05)}20%{transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-30px)}}#dx-ov{position:fixed;inset:0;z-index:100005;background:rgba(6,3,16,.8);display:flex;align-items:center;justify-content:center;padding:10px}.dx-box{width:min(96vw,560px);max-height:94vh;overflow:auto;background:linear-gradient(#22183c,#140e26);border:2px solid #b45cff;border-radius:18px;padding:12px;color:#fff;box-shadow:0 0 30px #000a}.dx-slots{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dx-slot{border:2px solid var(--c);border-radius:14px;padding:6px;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--c) 30%,transparent),#0006 70%);text-align:center;min-width:0}.dx-slot>b{display:block;font-size:.8rem;color:var(--c)}.dx-scv{position:relative;height:96px}.dx-sn{font-size:.8rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dx-empty{height:96px;display:flex;align-items:center;justify-content:center;color:#8a7fb0;font-size:.8rem}.dx-tabs{display:flex;gap:6px;margin:10px 0 8px}.dx-tabs button{flex:1;padding:8px 4px;border-radius:10px;font-weight:800;font-size:.85rem}.dx-tabs button.on{background:#5b3fd0;color:#fff;border-color:#ffd23f}.dx-note{font-size:.75rem;color:#bdb3d9;margin:6px 0;text-align:center}.dx-gh{font-weight:900;margin:10px 0 4px;font-size:.9rem}.dx-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}@media (max-width:420px){.dx-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}.dx-card{position:relative;padding:3px 2px;border-radius:10px;border:2px solid var(--c);background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--c) 28%,transparent),#0007 70%);display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.dx-card canvas{width:100%;aspect-ratio:1;image-rendering:pixelated}.dx-card span{font-size:.62rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.dx-card.no{border-color:#3a3156;background:#0006}.dx-card.no span{color:#6a6088}.dx-card.sel{outline:3px solid #ffd23f}.dx-card i.dx-n{position:absolute;top:2px;right:3px;font-style:normal;font-size:.65rem;font-weight:900;background:#000a;border-radius:6px;padding:0 4px}.dx-card em{position:absolute;top:2px;left:3px;font-style:normal;font-size:.6rem;font-weight:900;background:#5b3fd0;border-radius:6px;padding:0 4px}.dx-det{display:flex;gap:10px;align-items:center;margin:8px 0;padding:8px;border-radius:14px;border:2px solid var(--c);background:radial-gradient(circle at 20% 50%,color-mix(in srgb,var(--c) 30%,transparent),#0006 70%)}.dx-dcv{position:relative;width:130px;height:130px;flex:none}.dx-di{min-width:0;display:flex;flex-direction:column;gap:3px}.dx-dg{color:var(--c);font-weight:900;font-size:.85rem}.dx-dn{font-weight:900;font-size:1.15rem}.dx-dn small{font-size:.8rem;color:#bdb3d9}.dx-ds{display:flex;flex-direction:column;font-size:.75rem;color:#e0d8ff}.dx-db{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}.dx-db button{padding:7px 10px;border-radius:10px;font-weight:800;font-size:.8rem}.dx-gacha{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media (max-width:420px){.dx-gacha{grid-template-columns:1fr}}.dx-gc{border:2px solid var(--c);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:5px;background:#0005;font-size:.85rem}.dx-gc>b{color:var(--c);font-size:1rem}.dx-gc small{color:#bdb3d9;font-size:.72rem}.dx-gc>button{font-size:.75rem;padding:6px;border-radius:9px}.dx-res{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:10px}.dx-rc{position:relative;border:2px solid var(--c);border-radius:10px;padding:3px;text-align:center;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--c) 35%,transparent),#0007 70%);animation:dxIn .55s var(--d,0s) cubic-bezier(.2,1.5,.35,1) both;min-width:0}.dx-rc::after{content:'';position:absolute;inset:-2px;border-radius:10px;background:#fff;opacity:0;pointer-events:none;animation:dxFl .7s var(--d,0s) ease-out both}.dx-rc.g1::after,.dx-rc.g2::after,.dx-rc.no::after{animation:none}.dx-rc.g4,.dx-rc.g5,.dx-rc.g6{box-shadow:0 0 14px var(--c)}.dx-rc.no{filter:saturate(.6)}.dx-rc button{margin-top:3px;width:100%;font-size:.65rem;padding:3px 0;border-radius:7px}.dx-rc b{display:block;color:var(--c);font-size:.68rem}.dx-rc span{display:block;font-size:.62rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dx-rcv{position:relative;width:100%;aspect-ratio:1}@keyframes dxIn{0%{opacity:0;transform:scale(.3) rotateY(90deg)}100%{opacity:1;transform:none}}.dx-syn{display:flex;flex-direction:column;gap:6px}.dx-sr{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:8px 10px;border-radius:12px;background:#0005;border-left:4px solid var(--c);font-size:.85rem}.dx-sr small{display:block;color:#bdb3d9;font-size:.7rem}.dx-sr button{flex:none;padding:8px 14px;border-radius:10px;font-weight:900}.dx-sres{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px;border-radius:14px;border:2px solid var(--c);animation:dxIn .5s both}.dx-sres .dx-rcv{width:96px;flex:none}.dx-sres b{display:block;font-size:1rem}.dx-sres.ok b{color:#7dffa0}.dx-sres.no b{color:#ffb0b0}#rpg-box.dlm #rp-art{filter:drop-shadow(0 0 8px var(--dlc,#fff))}.ah-mon.dlm .ah-art{filter:drop-shadow(0 0 8px var(--dlc,#fff))}.dx-card i.dx-t,.dx-dg i.dx-t{position:absolute;left:3px;bottom:18px;font-style:normal;font-size:.55rem;font-weight:900;padding:0 4px;border-radius:5px;background:#000b;color:#cfc4ea}.dx-dg i.dx-t{position:static;font-size:.7rem}.dx-t.t1{color:#ffd23f!important;box-shadow:0 0 6px #ffd23f88}.dx-t.t2{color:#9fd8ff!important}.dx-card.used{opacity:.4}.dx-sk{color:#ffd23f}.dx-ss{font-size:.7rem;color:#ffd23f;font-weight:800}@keyframes dxFl{0%{opacity:0}35%{opacity:.95}100%{opacity:0}}.dx-sg{display:flex;gap:5px;margin-bottom:8px}.dx-sg button{flex:1;padding:6px 2px;border-radius:10px;border:2px solid var(--c);font-weight:900;font-size:.8rem;color:var(--c);background:#0006}.dx-sg button.on{background:var(--c);color:#140e26}.dx-sg small{display:block;font-size:.65rem;opacity:.85}.dx-sinfo{font-size:.82rem;padding:8px 10px;border-radius:12px;background:#0005;border-left:4px solid var(--c)}.dx-pity{position:relative;height:16px;border-radius:8px;background:#0008;margin-top:6px;overflow:hidden}.dx-pity i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#c0392b,#ff6b6b)}.dx-pity span{position:absolute;inset:0;font-size:.68rem;font-weight:900;text-align:center;line-height:16px;text-shadow:0 0 3px #000}.dx-slotsyn{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:8px 0}.dx-pair{display:flex;gap:2px;min-height:40px;padding:2px;border-radius:8px;border:1px dashed #5a4e88;background:#0005}.dx-pair.full{border:1px solid #ffd23f}.dx-mini{flex:1;min-width:0;padding:0;border-radius:6px;border:1px solid var(--c);background:#0006}.dx-mini canvas{width:100%;aspect-ratio:1;display:block;image-rendering:pixelated}.dx-sh{text-align:center;font-weight:900;margin:4px 0 2px;font-size:.9rem}.dl-fx{position:fixed;z-index:100008;pointer-events:none;image-rendering:pixelated;mix-blend-mode:screen}.dl-orb{position:fixed;z-index:100008;width:18px;height:18px;border-radius:50%;background:radial-gradient(#fff 0,#fff 25%,var(--c) 55%,transparent 72%);box-shadow:0 0 14px var(--c),0 0 30px var(--c);pointer-events:none}.dx-th{display:block;width:48px;height:48px;max-width:100%;margin:2px auto 0;background-repeat:no-repeat;image-rendering:pixelated;transform:scale(1.5);transform-origin:50% 70%;margin-top:12px;margin-bottom:6px}.dx-th.dk{filter:brightness(0) opacity(.45)}.dx-mini .dx-th{transform:scale(.8);margin:0 auto}#dx-news{position:fixed;inset:0;z-index:100007;background:rgba(6,3,16,.8);display:flex;align-items:center;justify-content:center;padding:12px}.dx-nb{width:min(94vw,520px);background:linear-gradient(#22183c,#140e26);border:2px solid #ffd23f;border-radius:18px;padding:14px;color:#fff;text-align:center;display:flex;flex-direction:column;gap:8px}.dx-nb>b{font-size:1.3rem;color:#ffd23f}.dx-nb small{color:#cfc4ea}.dx-nb .dx-res{grid-template-columns:repeat(3,minmax(0,1fr))}.dx-nb button{align-self:center;padding:10px 28px;border-radius:12px;font-weight:900}";document.head.appendChild(s)})();
@@ -15966,7 +16109,7 @@ function popH(S){var gi=GI[S.g],g=G[gi],col=g[2],k=L.sel,eq=L.eq[S.c]===k,own=L.
  if(isW(S))h+='<div class="lt-pd">⚔ 공격력 <b>'+L.watk(S)+'</b><small>무기는 경험치 보너스가 없어요</small></div>';
  else h+='<div class="lt-pd">✨ 경험치 획득 <b>+'+XPPCT(S.g)+'%</b><small>착용한 장비(무기 제외)의 보너스가 합산돼요 (지금 합계 +'+mu+'%)</small></div>';
  if(S.st>0&&!S.br)h+='<div class="lt-pd">⭐ 스타포스 <b>★'+S.st+'</b><small>'+(isW(S)?'무기 공격력':'방어구 체력')+' +'+L.sfAtk(S.st)+'% · 추가옵션 수치 +'+L.sfOpt(S.st)+'%</small></div>';if(S.br)h+='<div class="lt-pd">💥 깨진 장비의 흔적<small>착용할 수 없어요 · 골드로 복구하거나, 같은 등급 장비에 옮기면 ★12부터 시작해요</small></div>';
- h+=optH(S);var lkd=!!L.lock[k];h+='<div class="lt-pb">'+(S.un?'<button class="pri" id="lt-ap"'+(av>0?'':' disabled title="착용 중인 건 감정할 수 없어요"')+'>🔍 감정<span class="lt-apc">'+apLbl(S)+'</span></button>':'')+(S.un||!sfOn()?'':'<button class="pri sfb" id="lt-sf">'+(S.br?'🔧 흔적 복구·옮기기':S.st>=25?'⭐ ★25 최고':'⭐ 강화')+'</button>')+(S.br?'':'<button class="pri" id="lt-eq">'+(eq?'벗기':'착용')+'</button>')+'<button id="lt-lk">'+(lkd?'🔒 잠금 해제':'🔓 잠그기')+'</button>'+(eq?'<button id="lt-hd">'+(L.hid[k]?'👁 외형 보이기':'🙈 외형 숨기기')+'</button>':'')+'<button id="lt-ex"'+(S.g==='n'?' disabled title="노말은 옮길 등급이 없어요"':(lkd?' disabled title="잠긴 아이템은 추출할 수 없어요"':''))+'>등급 옮기기</button><button id="lt-ox"'+((!S.op||!S.op.length)?' disabled title="'+(S.un?'감정을 먼저 해주세요':'옮길 옵션이 없어요')+'"':(lkd?' disabled title="잠긴 아이템은 옮길 수 없어요"':''))+'>옵션 옮기기</button><button id="lt-d1"'+((av>0&&!lkd)?'':' disabled title="'+(lkd?'잠긴 아이템은 분해할 수 없어요':'착용 중인 건 분해할 수 없어요')+'"')+'>분해 +'+DIS[S.g]+(XDIS[S.g]?' · 🌟'+XDIS[S.g][0]+' 🌌'+XDIS[S.g][1]:'')+(disGold(S)?' · 💰'+goldFmt(disGold(S)):'')+'</button></div></div>';
+ h+=optH(S);try{if(L.pwCmpH&&!S.br)h+=L.pwCmpH(k)}catch(_){}var lkd=!!L.lock[k];h+='<div class="lt-pb">'+(S.un?'<button class="pri" id="lt-ap"'+(av>0?'':' disabled title="착용 중인 건 감정할 수 없어요"')+'>🔍 감정<span class="lt-apc">'+apLbl(S)+'</span></button>':'')+(S.un||!sfOn()?'':'<button class="pri sfb" id="lt-sf">'+(S.br?'🔧 흔적 복구·옮기기':S.st>=25?'⭐ ★25 최고':'⭐ 강화')+'</button>')+(S.br?'':'<button class="pri" id="lt-eq">'+(eq?'벗기':'착용')+'</button>')+'<button id="lt-lk">'+(lkd?'🔒 잠금 해제':'🔓 잠그기')+'</button>'+(eq?'<button id="lt-hd">'+(L.hid[k]?'👁 외형 보이기':'🙈 외형 숨기기')+'</button>':'')+'<button id="lt-ex"'+(S.g==='n'?' disabled title="노말은 옮길 등급이 없어요"':(lkd?' disabled title="잠긴 아이템은 추출할 수 없어요"':''))+'>등급 옮기기</button><button id="lt-ox"'+((!S.op||!S.op.length)?' disabled title="'+(S.un?'감정을 먼저 해주세요':'옮길 옵션이 없어요')+'"':(lkd?' disabled title="잠긴 아이템은 옮길 수 없어요"':''))+'>옵션 옮기기</button><button id="lt-d1"'+((av>0&&!lkd)?'':' disabled title="'+(lkd?'잠긴 아이템은 분해할 수 없어요':'착용 중인 건 분해할 수 없어요')+'"')+'>분해 +'+DIS[S.g]+(XDIS[S.g]?' · 🌟'+XDIS[S.g][0]+' 🌌'+XDIS[S.g][1]:'')+(disGold(S)?' · 💰'+goldFmt(disGold(S)):'')+'</button></div></div>';
  return h}
 function placePop(b){var p=b.querySelector('.lt-pop');if(!p)return;var els=b.querySelectorAll('.lt-s'),a=null,i,w;
  for(i=0;i<els.length;i++){if(els[i].dataset.k!==L.sel)continue;w=els[i].closest('.lt-eqp')?'eq':'bag';if(w===L.selw){a=els[i];break}if(!a)a=els[i]}
