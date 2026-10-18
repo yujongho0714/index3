@@ -2382,9 +2382,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 </style>
 <script>/* [v117] 큰 그림·데이터는 pk 폴더 파일로 분리. 원래 자리에 똑같이 끼워 넣음 */
 window.__PKLOAD=function(f,h,attrs){var x=new XMLHttpRequest(),t=null;
- try{x.open('GET','pk/'+f+'.txt?v='+h,false);x.overrideMimeType('text/plain; charset=utf-8');x.send();if(x.status===200||(x.status===0&&x.responseText))t=x.responseText}catch(e){}
+ try{x.open('GET',f+'.txt?v='+h,false);x.overrideMimeType('text/plain; charset=utf-8');x.send();if(x.status===200||(x.status===0&&x.responseText))t=x.responseText}catch(e){}
  var c=document.currentScript;
- if(t===null){try{console.error('[pk] 못 불러옴: '+f)}catch(_){}if(!window.__pkWarned){window.__pkWarned=1;setTimeout(function(){try{alert('게임 자료 파일(pk 폴더)을 못 불러왔어요.\nindex3 폴더 안의 pk 폴더도 같이 올렸는지 확인해 주세요.')}catch(_){}},800)}}
+ if(t===null){try{console.error('[pk] 못 불러옴: '+f)}catch(_){}if(!window.__pkWarned){window.__pkWarned=1;setTimeout(function(){try{alert('게임 자료 파일(.txt 6개)을 못 불러왔어요.\nindex.html과 같은 곳에 baked-data·boss-warn-asset·jd-dlx-fx·jd-hidden·jd-lib·rpg-assets .txt를 올렸는지 확인해 주세요.')}catch(_){}},800)}}
  else document.write('<script '+attrs+'>'+t+'<\/script>');
  if(c&&c.parentNode)c.parentNode.removeChild(c)};
 </script>
@@ -3895,7 +3895,7 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
     { id:'mrand', v:'v48', nm:'🗺 매 판 다른 지역에서 시작', d:'판마다 시작 지역(몬스터 묶음·배경)이 랜덤이라 새 몬스터가 골고루 나와요. 스테이지 번호·난이도는 그대로 1부터.' }
   ];
   var HIST = [
-    { v:'v118', d:'💪 도감 힘 한계선 조정: 200명을 전부 모으면 공격·체력·방어·치명이 딱 한계선(35/45/43/43%)에 닿아요. 이제 모으는 변신마다 힘이 끝까지 올라요. · 게임 파일 용량 22MB→약 5MB (그림·자료는 pk 폴더로 분리)'},
+    { v:'v119', d:'💪 도감 힘 한계선 조정: 200명을 전부 모으면 공격·체력·방어·치명이 딱 한계선(35/45/43/43%)에 닿아요. 이제 모으는 변신마다 힘이 끝까지 올라요. · 게임 파일 용량 22MB→약 5MB (그림·자료는 .txt 파일 6개로 분리)'},
     { v:'v115', d:'🃏 도감 카드: 2중 테두리 · 홀로그램 빛이 흐르는 효과 · 명계~절대신 별이 2중 테두리 별(등급마다 색·빛 다름)'},
     { v:'v113', d:'🌟 변신·동료 각성 다시: 장비 아이템을 먹이면 각성 경험치 (등급이 높을수록 많이 · 10% 확률 대성공 ×2) · ✦5까지 레벨업'},
     { v:'v112', d:'📖 변신 도감 200명 · 11등급(명계·마계·천계·천상계·절대신 추가, 합성으로만 얻음) · 변신마다 능력치·특성 다름 · 모은 변신의 능력치가 합쳐지는 💪 도감 힘 · 합성은 남는 카드 3장(고급~전설)/2장(신화~천상계) → 한 단계 위 · 각성 삭제 · 👤 내 캐릭터 모습만 보기'},
