@@ -3897,6 +3897,7 @@ html body #app-root button:not(.go-btn):not(.pm-go):not(.mw-send):not(.btn-s):no
     { id:'mrand', v:'v48', nm:'🗺 매 판 다른 지역에서 시작', d:'판마다 시작 지역(몬스터 묶음·배경)이 랜덤이라 새 몬스터가 골고루 나와요. 스테이지 번호·난이도는 그대로 1부터.' }
   ];
   var HIST = [
+    { v:'v127', d:'🎁 출석·업적·반복 업적·카드광대를 끝말잇기와 RPG에서 같이 받아요 (처치 수도 같이 쌓여요) · 📖 도감 · 🎁 출석·업적 버튼이 RPG에도'},
     { v:'v126', d:'🌟 카드 각성: 같은 등급의 남는 카드로 100% 각성 (✦1~4는 1장씩 · ✦5는 2장) · 장비 경험치도 비슷한 난이도로 조정 · 🃏 카드광대 보상: 카드 1장+고급 뽑기권 10장+일반 20장'},
     { v:'v123', d:'🃏 카드광대(황금고블린처럼 나와요 · 잡으면 카드 1장+뽑기권) · 🔁 반복 업적 · 🏆 업적 단계 늘림 · 쉬운 수치: 합성 성공률↑·천장 10번·뽑기권 드롭↑'},
     { v:'v122', d:'🎁 출석(매일 고급뽑기권 20장+100만 골드 · 7일마다 유일 뽑기권 · 30일째 천계 뽑기권) · 🏆 업적(골드·뽑기권) · 💰 큐브 팔기 값 수상한 5천/레드 1만/블랙 2만 · ⚗ 합성에 성공 확률·천장(실패하면 쌓이고 운으로 성공해도 안 없어져요)'},
@@ -15759,7 +15760,9 @@ var BONK='jd_bonus_v1';
 function bonGet(){var o=null;try{o=JSON.parse(localStorage.getItem(BONK)||'null')}catch(_){}o=o||{};o.att=o.att||{day:0,last:'',total:0};o.ach=o.ach||{};return o}
 function bonSave(o){try{localStorage.setItem(BONK,JSON.stringify(o))}catch(_){}}
 function bonToday(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
-var BKC=0;function bonKill(){BKC++;if(BKC>=10){var o=bonGet();o.k=(o.k|0)+BKC;BKC=0;bonSave(o)}}
+var BKC=0;function bonFlush(){if(BKC>0){var o=bonGet();o.k=(o.k|0)+BKC;BKC=0;bonSave(o)}}function bonKill(){BKC++;if(BKC>=10)bonFlush()}
+/* [v127] 끝말잇기·RPG가 같은 업적 기록(jd_bonus_v1)을 써요: RPG도 몬스터를 잡을 때마다 L.bonKill() · 화면을 나가거나 숨길 때 모자란 처치 수도 저장 */
+L.bonKill=bonKill;L.bonFlush=bonFlush;try{addEventListener('pagehide',bonFlush);document.addEventListener('visibilitychange',function(){if(document.hidden)bonFlush()})}catch(_){}
 var CNT={own:function(){return Object.keys(L.dlx.own).length},fuse:function(){return L.dlx.fs|0},att:function(){return bonGet().att.total|0},kill:function(){return (bonGet().k|0)+BKC},cln:function(){return L.dlx.ck|0},pull:function(){return L.dlx.gn|0},fa:function(){return L.dlx.fa|0}};
 var BACH=[
  {id:'c5',nm:'변신 5명 모으기',n:5,f:CNT.own,g:50000,t1:3},
