@@ -1,9 +1,10 @@
 /* 끝말잇기 오프라인 앱 — 처음 한 번 열면 전부 저장돼서 인터넷 없이도 열려요.
    게임 파일을 고쳐서 다시 올릴 때는 아래 VERSION 숫자를 하나 올려주세요 (그래야 폰이 새 파일로 바뀌어요). */
-const VERSION='v116';
+const VERSION='v118';
 const CACHE = 'jd-wordchain-' + VERSION;
 const CORE = ['./', 'index.html', 'dict-pack.json', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'favicon.png'];
 const OPTIONAL = ['ranks.json.gz', 'dict1.json.gz', 'dict2.json.gz',
+  'pk/baked-data.txt', 'pk/jd-lib.txt', 'pk/jd-hidden.txt', 'pk/jd-dlx-fx.txt', 'pk/boss-warn-asset.txt', 'pk/rpg-assets.txt',   // [v118] index.html에서 분리한 큰 그림·자료 (오프라인에서도 열리게 미리 저장)
   'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
   'https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&display=swap',
   'https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'];
