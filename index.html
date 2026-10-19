@@ -15691,13 +15691,13 @@ function jdMailBox(n,mx){var tr=curTr(),got=[];for(var i=0;i<n;i++){for(var j=0;
 function jdMail(){if(!MAILS&&L.dlxOk&&DLREADY){MAILS=true;jdShare()}
  if(MAILB||!L.goldOk||!L.dlxOk||!L.cbLoaded||document.hidden)return;var a;try{a=JSON.parse(localStorage.getItem('jd_mail')||'[]')}catch(_){a=[]}if(!Array.isArray(a)||!a.length)return;
  MAILB=true;try{localStorage.removeItem('jd_mail')}catch(_){}
- var bxq={},seen=[];try{seen=JSON.parse(localStorage.getItem('jd_mail_ids')||'[]')}catch(_){}if(!Array.isArray(seen))seen=[];
- var s={g:0,t1:0,t2:0,red:0,black:0,box:0},src={};a.forEach(function(m){if(!m)return;if(m.id){if(seen.indexOf(m.id)>=0)return;seen.push(m.id)}if(m.box>0){var q=Math.max(0,Math.min(4,m.bq==null?2:m.bq|0));bxq[q]=(bxq[q]||0)+Math.min(m.box|0,MAIL_MAX.box)}Object.keys(s).forEach(function(k){var v=Math.floor(Number(m[k])||0);if(v>0)s[k]+=Math.min(v,MAIL_MAX[k])});src[m.src||'etc']=1});
+ var bxq={},gbq={},seen=[];try{seen=JSON.parse(localStorage.getItem('jd_mail_ids')||'[]')}catch(_){}if(!Array.isArray(seen))seen=[];
+ var s={g:0,t1:0,t2:0,red:0,black:0,box:0},src={};a.forEach(function(m){if(!m)return;if(m.id){if(seen.indexOf(m.id)>=0)return;seen.push(m.id)}if(m.gb&&typeof m.gb==='object')Object.keys(m.gb).forEach(function(a){if(GBAG.indexOf(+a)>=0){var c=Math.floor(Number(m.gb[a])||0);if(c>0)gbq[a]=(gbq[a]||0)+Math.min(c,100)}});if(m.box>0){var q=Math.max(0,Math.min(4,m.bq==null?2:m.bq|0));bxq[q]=(bxq[q]||0)+Math.min(m.box|0,MAIL_MAX.box)}Object.keys(s).forEach(function(k){var v=Math.floor(Number(m[k])||0);if(v>0)s[k]+=Math.min(v,MAIL_MAX[k])});src[m.src||'etc']=1});
  try{localStorage.setItem('jd_mail_ids',JSON.stringify(seen.slice(-400)))}catch(_){}
- if(s.g)L.addGold(s.g);if(s.t1||s.t2){L.dlx.t1+=s.t1;L.dlx.t2+=s.t2;dlSave()}if(s.red||s.black)L.addCubes({red:s.red,black:s.black});var items=[];if(s.box){if(L.pack&&typeof roll==='function')Object.keys(bxq).forEach(function(q){items=items.concat(jdMailBox(bxq[q],+q))});else{try{localStorage.setItem('jd_mail',JSON.stringify([{src:Object.keys(src)[0],box:s.box}]))}catch(_){}}}
+ Object.keys(gbq).forEach(function(a){L.gbAdd(a,gbq[a])});if(s.g)L.addGold(s.g);if(s.t1||s.t2){L.dlx.t1+=s.t1;L.dlx.t2+=s.t2;dlSave()}if(s.red||s.black)L.addCubes({red:s.red,black:s.black});var items=[];if(s.box){if(L.pack&&typeof roll==='function')Object.keys(bxq).forEach(function(q){items=items.concat(jdMailBox(bxq[q],+q))});else{try{localStorage.setItem('jd_mail',JSON.stringify([{src:Object.keys(src)[0],box:s.box}]))}catch(_){}}}
  if(Object.keys(src).every(function(k){return k==='nap'})){MAILB=false;try{if(bagOn())bagRender()}catch(_){}return}
  var SN={tile:'🥋 태권도 타일 마스터',idle:'⚔ 방치 RPG'},from=Object.keys(src).map(function(k){return SN[k]||'다른 게임'}).join(' · '),li=[];
- if(s.g)li.push('<div class="ml-r">💰 골드 <b>+'+goldFmt(s.g)+'</b></div>');if(s.t1)li.push('<div class="ml-r">🎫 일반 뽑기권 <b>+'+s.t1+'</b></div>');if(s.t2)li.push('<div class="ml-r">🎟 고급 뽑기권(변신권) <b>+'+s.t2+'</b></div>');
+ if(s.g)li.push('<div class="ml-r">💰 골드 <b>+'+goldFmt(s.g)+'</b></div>');if(s.t1)li.push('<div class="ml-r">🎫 일반 뽑기권 <b>+'+s.t1+'</b></div>');if(s.t2)li.push('<div class="ml-r">🎟 고급 뽑기권(변신권) <b>+'+s.t2+'</b></div>');Object.keys(gbq).forEach(function(a){li.push('<div class="ml-r">💰 골드보따리 '+gbNm(+a)+' <b>×'+gbq[a]+'</b></div>')});
  if(s.red)li.push('<div class="ml-r">🟥 레드 큐브 <b>+'+s.red+'</b></div>');if(s.black)li.push('<div class="ml-r">⬛ 블랙 큐브 <b>+'+s.black+'</b></div>');
  items.forEach(function(k){var it=get(k);if(!it)return;var gi=GI[it.g],col=(G[gi]&&G[gi][2])||'#fff';li.push('<div class="ml-r">🎁 장비 상자 → <b style="color:'+col+'">'+esc(nm(it))+'</b> <small>('+esc(G[gi]?G[gi][1]:'')+')</small></div>')});
  if(!li.length){MAILB=false;return}var o=document.createElement('div');o.id='jd-mail';
@@ -15829,6 +15829,21 @@ var DXU={tab:'equip',ag:0,amat:null,sel:null,keep:true,res:null,sg:1,reg:[],sres
 var DX_TT={gacha:'🎰 변신·동료 뽑기',equip:'🦸 변신·동료 장착',syn:'⚗ 변신·동료 합성',book:'📖 변신·동료 도감',aw:'🌟 변신·동료 각성',pow:'💪 도감 힘'};
 L.dlxOpen=function(tab){if(!dlInit()){toast('변신·동료를 불러오는 중이에요… 잠깐 뒤에 다시 눌러 주세요 (index.html 옆에 dlx- 파일들이 올라가 있어야 해요)');dlLoad().then(function(ok){if(ok)L.dlxOpen(tab)});return}
  tab=({my:'equip',card:'equip'})[tab]||tab||'equip';DXU.tab=tab;DXU.res=null;DXU.sres=null;DXU.reg=[];DXU.sel=null;dxRender()};
+/* [소비 탭] 가방의 🧪 소비 탭에서 뽑기권을 바로 써요 (뽑기 화면의 버튼과 같은 길) */
+/* [A단계] 골드보따리: L.dlx.gb = {"100000":개수,...} · 열면 골드 지급 (개수를 먼저 깎고 저장한 뒤 지급) */
+var GBAG=[100000,500000,1000000,5000000,10000000,50000000,100000000],GBCOL=['#8fd18f','#5fd38a','#4aa3ff','#b45cff','#ffd23f','#ff9a2e','#ff4b4b'];
+function gbNm(a){return a>=100000000?(a/100000000)+'억':(a/10000)+'만'}
+L.gbCount=function(a){var g=L.dlx&&L.dlx.gb;return Math.max(0,Math.floor(Number(g&&g[a])||0))};
+L.gbAdd=function(a,n){a=+a;n=Math.floor(Number(n)||0);if(GBAG.indexOf(a)<0||n<1||!L.dlxOk)return false;if(!L.dlx.gb||typeof L.dlx.gb!=='object')L.dlx.gb={};L.dlx.gb[a]=L.gbCount(a)+n;dlSave();return true};
+L.gbOpen=function(a,n){a=+a;if(GBAG.indexOf(a)<0||!L.dlxOk)return 0;n=Math.min(Math.floor(Number(n)||0),L.gbCount(a));if(n<1)return 0;
+ if(a*n>=50000000&&!confirm('💰 골드보따리 '+gbNm(a)+' 골드 × '+n+'개를 열까요?\n(+'+goldFmt(a*n)+' 골드)'))return 0;
+ L.dlx.gb[a]=L.gbCount(a)-n;dlSave();L.addGold(a*n);toast('💰 골드보따리 '+gbNm(a)+' × '+n+' → +'+goldFmt(a*n)+' 골드!');return n};
+/* [TEMP-테스트용] 주소 끝에 ?gbtest=1 → 골드보따리 7종 2개씩 지급(1회). B단계에서 삭제할 것 */
+try{if(/[?&]gbtest=1/.test(location.search)){var _gbt=setInterval(function(){if(L.dlxOk){clearInterval(_gbt);GBAG.forEach(function(a){L.gbAdd(a,2)});try{history.replaceState(null,'',location.pathname)}catch(e){}toast('🧪 테스트: 골드보따리 7종 ×2 지급')}},500)}}catch(e){}
+L.dlxPull=function(type,n){if(!dlInit()){toast('변신·동료를 불러오는 중이에요… 잠깐 뒤에 다시 눌러 주세요');dlLoad().then(function(ok){if(ok)L.dlxPull(type,n)});return}
+ var key=type===2?'t2':'t1';if((L.dlx[key]|0)<n){toast('뽑기권이 모자라요');return}
+ L.dlxOpen('gacha');var r=L.dlxGacha(type,n);if(!r){toast('뽑기권이 모자라요');return}DXU.res=r;dxRender();dxSummon(r,type,n);
+ var tm=setInterval(function(){if(document.getElementById('dx-ov'))return;clearInterval(tm);try{if(bagOn()&&L.view==='cs'&&!L.cube)bagRender()}catch(_){}},500)};
 /* [v80] ✨ 도감·장착 카드가 살아 움직여요: 가진 캐릭터는 카드 안에서 숨쉬듯 움직이고, 누르면 공격 모션 · 등급별 빛기둥·빛줄기·반짝이 · 유일은 무지개 테두리 */
 var DXIO=null;
 function dxLiveH(u){var n=[0,2,3,4,5,6,5,6,6,6,6,6][u.g]||0,p='';for(var i=0;i<n;i++)p+='<i class="dx-pt" style="left:'+(10+Math.random()*80|0)+'%;--d:'+(2+Math.random()*2.5).toFixed(2)+'s;--dl:'+(Math.random()*3).toFixed(2)+'s;--x:'+((Math.random()*30-15)|0)+'px'+(u.g===11?';background:hsl('+(i*50%360)+' 90% 70%)':'')+'"></i>';
@@ -16262,13 +16277,27 @@ function bagRender(){var b=document.getElementById('lt-bag'),P=L.pack,NOP=!P;
    L.sel=nk;L.cat=t.c;L.ext=null;bagRender()};
   return}
  var EQC=['weapon','helmet','shield','cloak','armor','outer','shoes'];
- var view=L.bulk?'bag':(L.view==='eq'?'eq':(L.view==='sk'?'sk':'bag'));b.classList.toggle('v-bag',view==='bag');b.classList.toggle('v-eq',view==='eq');
+ var view=L.bulk?'bag':(L.view==='eq'?'eq':(L.view==='sk'?'sk':(L.view==='cs'?'cs':'bag')));b.classList.toggle('v-bag',view==='bag');b.classList.toggle('v-eq',view==='eq');
  var eqk=Object.keys(L.eq).filter(function(c){return get(L.eq[c])});
  var bagList=own.filter(function(k){var it=get(k);return avail(k)>0&&inCat(it)}).sort(sortKeys);
  var mu=Math.round(L.bonus()*1000)/10;
- h='<div class="lt-h"><b>🎒 아이템창</b><span>'+(sfOn()?'<span class="lt-gold">💰 <b class="jd-gold-n">'+goldFmt(L.gold)+'</b></span> <button id="lt-ah" onclick="LOOT.autoOpen()">⚔ 자동사냥</button> <button id="lt-dx" onclick="LOOT.dlxOpen(\'equip\')">🦸 변신·동료</button> <button id="lt-nm" onclick="LOOT.exportNames&&LOOT.exportNames()" title="자무주 수집용 아이템 이름 목록">📋 이름 목록</button> ':'')+'<button id="lt-bk" class="'+(L.bulk?'on':'')+'">🗑 일괄 분해</button> <button id="lt-u">장비 모두 해제</button> <button id="lt-x">✕</button></span></div>'+(L.bulk?'':cubeRowH())+(L.bulk?'':'<div class="lt-vt"><button data-v="bag" class="'+(view==='bag'?'on':'')+'">🎒 가방</button><button data-v="eq" class="'+(view==='eq'?'on':'')+'">🛡 장비</button><button data-v="sk" class="'+(view==='sk'?'on':'')+'">🎨 스킨</button></div>');
+ h='<div class="lt-h"><b>🎒 아이템창</b><span>'+(sfOn()?'<span class="lt-gold">💰 <b class="jd-gold-n">'+goldFmt(L.gold)+'</b></span> <button id="lt-ah" onclick="LOOT.autoOpen()">⚔ 자동사냥</button> <button id="lt-dx" onclick="LOOT.dlxOpen(\'equip\')">🦸 변신·동료</button> <button id="lt-nm" onclick="LOOT.exportNames&&LOOT.exportNames()" title="자무주 수집용 아이템 이름 목록">📋 이름 목록</button> ':'')+'<button id="lt-bk" class="'+(L.bulk?'on':'')+'">🗑 일괄 분해</button> <button id="lt-u">장비 모두 해제</button> <button id="lt-x">✕</button></span></div>'+(L.bulk?'':cubeRowH())+(L.bulk?'':'<div class="lt-vt"><button data-v="bag" class="'+(view==='bag'?'on':'')+'">🎒 가방</button><button data-v="eq" class="'+(view==='eq'?'on':'')+'">🛡 장비</button><button data-v="sk" class="'+(view==='sk'?'on':'')+'">🎨 스킨</button><button data-v="cs" class="'+(view==='cs'?'on':'')+'">🧪 소비</button></div>');
+ if(view==='cs'){b.classList.remove('v-bag');b.classList.remove('v-eq');
+  var dx0=L.dlx||{},tkH=function(ty,c,nm,cnt){return '<div class="cs-tk" style="--c:'+c+'"><div class="cs-th"><b>'+nm+'</b><span>×<b data-tk="'+ty+'">'+cnt+'</b></span></div><div class="cs-db"><button class="pri" data-pull="'+ty+'" data-n="1"'+(cnt<1?' disabled':'')+'>1번 뽑기</button><button class="pri" data-pull="'+ty+'" data-n="10"'+(cnt<10?' disabled':'')+'>10번 뽑기</button></div></div>'};
+  b.innerHTML='<div class="lt-h"><b>🎒 아이템창</b><span>'+(sfOn()?'<span class="lt-gold">💰 <b class="jd-gold-n">'+goldFmt(L.gold)+'</b></span> ':'')+'<button id="lt-x">✕</button></span></div><div class="lt-vt"><button data-v="bag">🎒 가방</button><button data-v="eq">🛡 장비</button><button data-v="sk">🎨 스킨</button><button data-v="cs" class="on">🧪 소비</button></div>'
+   +'<div class="cs-wrap"><div class="cs-sh">🧪 큐브 <small>누르면 쓸 장비를 고르는 화면으로 가요</small></div>'+cubeRowH()
+   +'<div class="cs-sh">🎫 뽑기권 <small>누르면 바로 뽑아요 (결과는 뽑기 화면에 떠요)</small></div><div class="cs-tks">'+tkH(1,'#4aa3ff','🎫 일반 뽑기권',dx0.t1|0)+tkH(2,'#ff9a2e','🎟 고급 뽑기권 (변신권)',dx0.t2|0)+'</div>'
+   +'<div class="cs-sh">💰 골드보따리 <small>열면 골드가 바로 들어와요</small></div><div class="cs-tks">'+GBAG.map(function(a,i){var c=L.gbCount(a);return '<div class="cs-tk" style="--c:'+GBCOL[i]+'"><div class="cs-th"><b>💰 '+gbNm(a)+' 골드</b><span>×<b>'+c+'</b></span></div><div class="cs-db"><button class="pri" data-gb="'+a+'" data-n="1"'+(c<1?' disabled':'')+'>1개 열기</button><button class="pri" data-gb="'+a+'" data-n="999999"'+(c<2?' disabled':'')+'>전부 열기</button></div></div>'}).join('')+'</div>'
+   +'<div class="lt-sub" style="text-align:center">우편함·몬스터에서 받은 큐브와 뽑기권을 여기서 바로 써요.</div></div>';
+  b.querySelector('#lt-x').onclick=function(){b.classList.remove('on')};
+  b.querySelectorAll('.lt-vt button').forEach(function(x){x.onclick=function(){L.view=x.dataset.v;L.sel=null;bagRender();b.scrollTop=0}});
+  b.querySelectorAll('[data-cube]').forEach(function(x){x.onclick=function(){L.openCube(x.dataset.cube)}});
+  b.querySelectorAll('[data-prob]').forEach(function(x){x.onclick=function(e){e.stopPropagation();L.showProb(x.dataset.prob)}});
+  b.querySelectorAll('[data-pull]').forEach(function(x){x.onclick=function(){L.dlxPull(+x.dataset.pull,+x.dataset.n)}});
+  b.querySelectorAll('[data-gb]').forEach(function(x){x.onclick=function(){if(L.gbOpen(+x.dataset.gb,+x.dataset.n)){var st0=b.scrollTop;bagRender();b.scrollTop=st0}}});
+  b.onclick=null;return}
  if(view==='sk'&&window.JDSKIN){var sk=(L.skk==='ans'||(window.jdpOn&&jdpOn('dmgfx')))?'ans':'dmg';b.classList.remove('v-bag');b.classList.remove('v-eq');
-  b.innerHTML='<div class="lt-h"><b>🎒 아이템창</b><span><button id="lt-x">✕</button></span></div><div class="lt-vt"><button data-v="bag">🎒 가방</button><button data-v="eq">🛡 장비</button><button data-v="sk" class="on">🎨 스킨</button></div>'+JDSKIN.panelH(sk);
+  b.innerHTML='<div class="lt-h"><b>🎒 아이템창</b><span><button id="lt-x">✕</button></span></div><div class="lt-vt"><button data-v="bag">🎒 가방</button><button data-v="eq">🛡 장비</button><button data-v="sk" class="on">🎨 스킨</button><button data-v="cs">🧪 소비</button></div>'+JDSKIN.panelH(sk);
   b.querySelector('#lt-x').onclick=function(){b.classList.remove('on')};
   b.querySelectorAll('.lt-vt button').forEach(function(x){x.onclick=function(){L.view=x.dataset.v;L.sel=null;bagRender();b.scrollTop=0}});
   b.querySelectorAll('[data-skk]').forEach(function(x){x.onclick=function(){L.skk=x.dataset.skk;var st0=b.scrollTop;bagRender();b.scrollTop=st0}});
@@ -17151,6 +17180,13 @@ html.jd-back-on #game{padding-top:0}
 #lt-bag .lt-vt{flex:none;display:flex;gap:8px;margin:2px 0 4px}
 #lt-bag .lt-vt button{flex:1;min-height:46px;font-weight:900;font-size:1rem;border-radius:12px;border:2px solid #5a4f80;background:#1b1330;color:#cfc4ea}
 #lt-bag .lt-vt button.on{border-color:#ffd23f;color:#ffd23f;background:#3b2f66;box-shadow:0 0 10px #ffd23f55}
+#lt-bag .lt-vt button{padding-left:2px;padding-right:2px;font-size:.92rem}
+#lt-bag .cs-wrap{display:flex;flex-direction:column;gap:8px;padding:4px 0 24px}
+#lt-bag .cs-sh{font-weight:900;color:#ffd23f;margin-top:6px}#lt-bag .cs-sh small{font-weight:600;color:#bdb2dd;font-size:.72rem;margin-left:6px}
+#lt-bag .cs-tks{display:flex;gap:8px;flex-wrap:wrap}
+#lt-bag .cs-tk{flex:1 1 150px;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:10px;border:2px solid var(--c,#5a4f80);background:#1b1330;box-shadow:0 0 10px color-mix(in srgb,var(--c,#5a4f80) 35%,transparent)}
+#lt-bag .cs-th{display:flex;justify-content:space-between;align-items:center;font-size:.9rem}#lt-bag .cs-th span b{color:#ffd23f;font-size:1.1rem}
+#lt-bag .cs-db{display:flex;gap:6px}#lt-bag .cs-db button{flex:1;min-height:46px;font-weight:800}#lt-bag .cs-db button:disabled{opacity:.4}
 #lt-bag .lt-mini{display:none;font-size:.72rem;color:#ffd23f;text-align:center;font-weight:800;line-height:1.2}
 #lt-bag .lt-eqnote{font-size:.8rem;color:#bdb2dd;text-align:center;margin:6px 0 4px}
 #lt-bag.v-bag .lt-top{flex-direction:row;align-items:center;gap:8px;max-width:none;margin:0}
