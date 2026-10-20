@@ -1,6 +1,6 @@
 /* 끝말잇기 오프라인 앱 — 처음 한 번 열면 전부 저장돼서 인터넷 없이도 열려요.
    게임 파일을 고쳐서 다시 올릴 때는 아래 VERSION 숫자를 하나 올려주세요 (그래야 폰이 새 파일로 바뀌어요). */
-const VERSION='v129';
+const VERSION='v130';
 const CACHE = 'jd-wordchain-' + VERSION;
 const CORE = ['./', 'index.html', 'dict-pack.json', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'favicon.png'];
 const OPTIONAL = ['ranks.json.gz', 'dict1.json.gz', 'dict2.json.gz',
@@ -13,7 +13,7 @@ const CDN_OK = ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.c
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
     const c = await caches.open(CACHE);
-    await c.addAll(CORE);
+    await c.addAll(CORE.map(u => new Request(u, { cache: 'reload' })));   // [v130] 폰 안에 남은 옛 사본을 건너뛰고 서버에서 새로 받기
     await Promise.all(OPTIONAL.map(u => c.add(u).catch(() => {})));   // 없거나 못 받아도 괜찮은 것들
     self.skipWaiting();
   })());
@@ -43,6 +43,15 @@ self.addEventListener('fetch', e => {
     e.respondWith((async () => {
       try { const res = await fetch(r, { cache: 'no-store' }); if (res && res.ok) return res; return res; } catch (err) {}
       const hit = await caches.match(r, { ignoreSearch: true }); return hit || new Response('', { status: 504, statusText: 'offline' });
+    })());
+    return;
+  }
+  /* [v130] 게임 본체(index.html)는 항상 새 것부터 — 예전엔 저장해 둔 옛 사본을 먼저 보여줘서 새 버전이 안 떴어요. 인터넷이 안 되면 저장본으로 열려요 */
+  if (same && (r.mode === 'navigate' || /\/(index\.html)?$/.test(u.pathname))) {
+    e.respondWith((async () => {
+      const c = await caches.open(CACHE);
+      try { const res = await fetch(u.origin + u.pathname + u.search, { cache: 'no-cache' }); if (res && res.ok) { c.put(r, res.clone()); return res; } } catch (err) {}
+      const hit = (await c.match(r, { ignoreSearch: true })) || (await c.match('index.html')); return hit || new Response('', { status: 504, statusText: 'offline' });
     })());
     return;
   }
