@@ -15704,6 +15704,105 @@ function jdMail(){if(!MAILS&&L.dlxOk&&DLREADY){MAILS=true;jdShare()}
  o.innerHTML='<div class="ml-box"><div class="ml-ic">📬</div><b class="ml-t">보상이 도착했어요!</b><small class="ml-s">'+esc(from)+'에서 보냈어요</small><div class="ml-l">'+li.join('')+'</div><button class="pri" id="ml-ok">받았어요!</button></div>';
  document.body.appendChild(o);o.querySelector('#ml-ok').onclick=function(){o.remove();MAILB=false;try{if(bagOn())bagRender()}catch(_){}}}
 setInterval(jdMail,2000);setInterval(function(){if(MAILS&&!document.hidden)jdShare()},30000);document.addEventListener('visibilitychange',function(){if(document.hidden&&MAILS)jdShare()});
+/* [v132] 📬 끝말잇기 우편함 + 🧪 소비 바로가기 — RPG(rpg-core.js J.mail)와 같은 Firebase 우편·같은 받은 기록(jd_mail/claimed/{이름}/{id})을 써서 어느 쪽에서 받아도 한 번만 지급돼요.
+   RPG 안에서 이 코드가 같이 불러와지면(window.J.boot 있음) 아무것도 안 해요 → RPG는 rpg-ui.js 의 우편함을 써요. */
+(function(){
+ if(window.J&&typeof window.J.boot==='function')return;
+ var FB={apiKey:'AIzaSyBhQaR8YuG4CovQgFBaPKd2nZSO7ZjP0PY',authDomain:'taekwondo-wordgame.firebaseapp.com',databaseURL:'https://taekwondo-wordgame-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'taekwondo-wordgame',storageBucket:'taekwondo-wordgame.firebasestorage.app',messagingSenderId:'376591184218',appId:'1:376591184218:web:d4a4ee50773e787e300363'};
+ var PEND='rpg_mail_pend',DEV='rpg_mail_dev';
+ var S={db:null,off:0,box:{},boxOk:false,cl:{},leaf:{},conn:false,sig:'',busy:{},boxSub:false,seen:null,ov:null,started:false,tries:0,tm:0};
+ var dotEl=null,fabEl=null,loadingFb=false;
+ function cnt(v){v=+v;return(isFinite(v)&&v>0)?Math.floor(v):0}
+ function clean(n){return String(n==null?'':n).replace(/[.$#\[\]\/]/g,'_')}
+ function now(){return Date.now()+S.off}
+ function nameKey(){var n=null;try{n=localStorage.getItem('online_last_name');if(n){try{var j=JSON.parse(n);if(typeof j==='string')n=j}catch(_){}}}catch(_){}
+  if(!n){try{var r=localStorage.getItem('jd_playerNames');if(r){var j2=null;try{j2=JSON.parse(r)}catch(_){j2=r}if(Array.isArray(j2)){var f=j2[0];n=(f&&typeof f==='object')?(f.name||f.n):f}else if(typeof j2==='string')n=j2}}catch(_){}}
+  n=(n==null?'':String(n)).trim();return n?clean(n):''}
+ function devKey(){var d='';try{d=localStorage.getItem(DEV)||'';if(!d){d='dev_'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem(DEV,d)}}catch(_){d='dev_tmp'}return d}
+ function myKeys(){var a=[],n=nameKey();if(n)a.push(n);a.push(devKey());return a}
+ function claimKey(){return nameKey()||devKey()}
+ function isClaimed(id){for(var k in S.cl)if(S.cl[k]&&S.cl[k][id]!=null)return true;return false}
+ function live(m){return !!m&&typeof m==='object'&&!(+m.expireAt>0&&+m.expireAt<=now())}
+ function loaded(){if(!S.boxOk)return false;var ks=myKeys();for(var i=0;i<ks.length;i++){var k=ks[i];if(!S.cl[k])return false;for(var id in S.box){if(!live(S.box[id]))continue;var l=S.leaf[k+'|'+id];if(!l||!l.ready)return false}}return true}
+ function items(it){it=(it&&typeof it==='object')?it:{};var c=(it.cubes&&typeof it.cubes==='object')?it.cubes:{};return{gold:Math.min(cnt(it.gold),1e10),sus:Math.min(cnt(c.sus),1e6),red:Math.min(cnt(c.red),1e6),black:Math.min(cnt(c.black),1e6),t1:Math.min(cnt(it.t1),1e6),t2:Math.min(cnt(it.t2),1e6)}}
+ function fmt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+ function text(it){var p=[];if(it.gold)p.push('💰 골드 '+fmt(it.gold));if(it.sus)p.push('🔷 큐브 '+fmt(it.sus));if(it.red)p.push('🟥 큐브 '+fmt(it.red));if(it.black)p.push('⬛ 큐브 '+fmt(it.black));if(it.t1)p.push('🎫 뽑기권 '+fmt(it.t1));if(it.t2)p.push('🎟 뽑기권 '+fmt(it.t2));return p.join(' · ')||'(보상 없음)'}
+ function mine(m){var t=m.to;if(t==null||t==='all')return true;var n=nameKey();return !!n&&clean(t)===n}
+ function list(){if(!loaded())return[];var t=now(),out=[];Object.keys(S.box||{}).forEach(function(id){var m=S.box[id];if(!m||typeof m!=='object'||!mine(m))return;if(+m.expireAt>0&&+m.expireAt<=t)return;if(isClaimed(id))return;out.push({id:id,title:String(m.title||'우편').slice(0,40),body:String(m.body||'').slice(0,500),createdAt:+m.createdAt||0,expireAt:+m.expireAt||0,personal:(m.to!=null&&m.to!=='all'),items:items(m.items)})});out.sort(function(a,b){return b.createdAt-a.createdAt});return out}
+ function online(){return !!(S.conn&&navigator.onLine!==false)}
+ function ready(){return !!(L&&L.goldOk&&L.dlxOk&&L.cbLoaded&&L.dlx)}
+ function grant(it){if(it.gold)L.addGold(it.gold);if(it.sus||it.red||it.black)L.addCubes({sus:it.sus,red:it.red,black:it.black});if(it.t1||it.t2){L.dlx.t1=(L.dlx.t1|0)+it.t1;L.dlx.t2=(L.dlx.t2|0)+it.t2;dlSave()}try{if(bagOn()&&L.view==='cs'&&!L.cube)bagRender()}catch(_){}}
+ function pendGet(){var p={};try{p=JSON.parse(localStorage.getItem(PEND)||'{}')}catch(_){}return(p&&typeof p==='object')?p:{}}
+ function pendSet(p){try{localStorage.setItem(PEND,JSON.stringify(p))}catch(_){}}
+ function pk(k,id){return k+'|'+id}
+ function pendDel(k,id){var p=pendGet();delete p[pk(k,id)];pendSet(p)}
+ function paid(k,id,it){try{grant(it)}catch(e){try{console.error('[우편 지급 실패] 우편 id =',id,it,e)}catch(_){}toast('⚠ 문제가 생겼어요. 운영자에게 알려 주세요 (우편 '+id+')')}pendDel(k,id)}
+ function claim(id){
+  if(S.busy[id])return Promise.resolve({ok:false,msg:'처리 중이에요'});
+  if(!ready())return Promise.resolve({ok:false,msg:'가방을 불러오는 중이에요. 잠깐 뒤에 다시 눌러 주세요'});
+  if(!online()||!S.db)return Promise.resolve({ok:false,msg:'📡 인터넷이 필요해요'});
+  var m=list().filter(function(x){return x.id===id})[0];if(!m)return Promise.resolve({ok:false,msg:'이미 받았거나 없어진 우편이에요'});
+  S.busy[id]=1;var k=claimKey(),t=Math.floor(now()),p=pendGet();p[pk(k,id)]={k:k,id:id,t:t,it:m.items};pendSet(p);   /* 지급 전에 적어 둬요 → 도중에 앱이 꺼져도 이어서 지급 */
+  var w;try{w=S.db.ref('jd_mail/claimed/'+k+'/'+id).set(t)}catch(e){w=Promise.reject(e)}
+  return Promise.race([w.then(function(){return 'ok'},function(e){return{e:e}}),new Promise(function(res){setTimeout(function(){res('slow')},12000)})]).then(function(r){
+   if(r==='slow'){w.then(function(){paid(k,id,m.items);delete S.busy[id];toast('📬 우편을 받았어요 '+text(m.items));refresh(true)},function(){pendDel(k,id);delete S.busy[id];refresh(true)});return{ok:false,msg:'연결이 느려요. 연결되면 자동으로 받아져요'}}
+   if(r!=='ok'){pendDel(k,id);delete S.busy[id];var e=r.e,c=e&&e.code,mm=(e&&e.message)||'';if(c==='PERMISSION_DENIED'||/permission_denied/i.test(mm))return{ok:false,msg:'이미 받은 우편이에요'};return{ok:false,msg:'받지 못했어요. 잠시 뒤 다시 눌러 주세요'}}
+   paid(k,id,m.items);delete S.busy[id];refresh(true);return{ok:true,msg:'📬 받았어요! '+text(m.items)}})}
+ function claimAll(){var ls=list();if(!ls.length)return Promise.resolve({ok:false,msg:'받을 우편이 없어요'});var n=0,last='',i=0;
+  return new Promise(function(done){(function nx(){if(i>=ls.length)return done(n?{ok:true,msg:'📬 우편 '+n+'개를 받았어요'+(last?' · '+last:'')}:{ok:false,msg:last||'받을 우편이 없어요'});
+   claim(ls[i++].id).then(function(r){if(r.ok){n++;nx()}else if(!/이미 받/.test(r.msg)){last=r.msg;done(n?{ok:true,msg:'📬 우편 '+n+'개를 받았어요 · '+last}:{ok:false,msg:last})}else nx()})})()})}
+ function recover(){if(!ready())return;var p=pendGet();Object.keys(p).forEach(function(key){var e=p[key];if(!e||S.busy[e.id]||!S.cl[e.k])return;var v=S.cl[e.k][e.id];
+  if(v===e.t){S.busy[e.id]=1;paid(e.k,e.id,items(e.it));delete S.busy[e.id];toast('📬 우편을 지급했어요 '+text(items(e.it)));refresh(true)}
+  else if(Date.now()-(+e.t||0)>864e5||v!=null)pendDel(e.k,e.id)})}
+ function paint(){var n=0;try{n=list().length}catch(_){}if(dotEl){dotEl.textContent=n>9?'9+':String(n);dotEl.style.display=n?'':'none'}if(fabEl)fabEl.style.animation=n?'jdmbpulse 1.6s infinite':'none';if(S.ov&&S.ov.isConnected)drawBox();return n}
+ function refresh(quiet){try{var ls=list(),ok=loaded();if(ok){var ids={};ls.forEach(function(m){ids[m.id]=1});if(S.seen===null){S.seen=ids;if(ls.length&&!quiet)toast('📬 안 받은 우편이 '+ls.length+'통 있어요! 오른쪽 📬를 눌러요')}else{var nw=0;ls.forEach(function(m){if(!S.seen[m.id]){nw++;S.seen[m.id]=1}});if(nw&&!quiet)toast('📬 새 우편이 왔어요')}recover()}}catch(_){}paint()}
+ function offLeaf(key){var l=S.leaf[key];if(l){try{l.ref.off('value',l.fn)}catch(_){}delete S.leaf[key]}}
+ function subClaims(){var db=S.db,ks=myKeys(),sig=ks.join('|');if(sig!==S.sig){S.sig=sig;Object.keys(S.leaf).forEach(offLeaf);S.cl={}}
+  ks.forEach(function(k){if(!S.cl[k])S.cl[k]={}});var want={};ks.forEach(function(k){Object.keys(S.box||{}).forEach(function(id){if(live(S.box[id]))want[pk(k,id)]=[k,id]})});
+  Object.keys(S.leaf).forEach(function(key){if(!want[key]){var k=S.leaf[key].k,id=S.leaf[key].id;offLeaf(key);if(S.cl[k])delete S.cl[k][id]}});
+  Object.keys(want).forEach(function(key){if(S.leaf[key])return;var k=want[key][0],id=want[key][1],ref=db.ref('jd_mail/claimed/'+k+'/'+id),l={ref:ref,k:k,id:id,ready:false};
+   l.fn=function(s2){var v=s2&&s2.val();if(!S.cl[k])S.cl[k]={};if(v==null)delete S.cl[k][id];else S.cl[k][id]=v;l.ready=true;refresh(false)};S.leaf[key]=l;try{ref.on('value',l.fn,function(){})}catch(_){}})}
+ function connect(){if(S.db)return true;try{if(typeof firebase==='undefined'||!firebase.initializeApp||typeof firebase.database!=='function')return false;var app;try{app=firebase.app('online')}catch(e){app=firebase.initializeApp(FB,'online')}S.db=app.database();S.db.ref('.info/serverTimeOffset').on('value',function(s){S.off=Number(s&&s.val())||0});return true}catch(e){return false}}
+ function loadFb(){if(loadingFb)return;loadingFb=true;var B='https://www.gstatic.com/firebasejs/10.12.2/',ld=function(src){return new Promise(function(a,b){var s=document.createElement('script');s.src=src;s.onload=a;s.onerror=b;document.head.appendChild(s)})};
+  (typeof firebase!=='undefined'&&firebase.initializeApp?Promise.resolve():ld(B+'firebase-app-compat.js')).then(function(){return typeof firebase.database==='function'?0:ld(B+'firebase-database-compat.js')}).catch(function(){})}
+ function sub(){if(!connect())return false;var db=S.db;if(!S.boxSub){S.boxSub=true;db.ref('.info/connected').on('value',function(s){S.conn=!!(s&&s.val());paint()});db.ref('jd_mail/box').on('value',function(s){S.box=(s&&s.val())||{};S.boxOk=true;try{subClaims()}catch(_){}refresh(false)},function(){})}subClaims();return true}
+ function start(){if(S.started)return;S.started=true;var wait=function(){try{if(sub())return}catch(_){}S.tries++;if(S.tries===4)loadFb();if(S.tries<60)setTimeout(wait,1500)};wait();setInterval(function(){try{if(!sub())return;subClaims();refresh(true)}catch(_){}},30000)}
+ /* ---- 우편함 화면 ---- */
+ var busy=false;
+ function hs(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+ function drawBox(){var o=S.ov;if(!o||!o.isConnected)return;var ls=list(),on=online(),off=(busy||!on)?' disabled':'';
+  o.querySelector('#jdmb-note').textContent=on?'받기를 누르면 골드·큐브·뽑기권이 바로 들어와요. 같은 우편은 한 번만 받아져요.':'📡 인터넷이 필요해요. 연결되면 받을 수 있어요.';
+  o.querySelector('#jdmb-list').innerHTML=loaded()?(ls.length?ls.map(function(m){return '<div class="jdmb-m"><b>'+(m.personal?'💌 ':'')+hs(m.title)+'</b>'+(m.body?'<div class="jdmb-b">'+hs(m.body)+'</div>':'')+'<div class="jdmb-g">🎁 '+hs(text(m.items))+'</div>'+(m.expireAt?'<small>'+(function(){var d=new Date(m.expireAt);return (d.getMonth()+1)+'/'+d.getDate()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+'까지'})()+'</small>':'')+'<button type="button" class="jdmb-bt" data-ml="'+hs(m.id)+'"'+off+'>받기</button></div>'}).join(''):'<p class="jdmb-n">받을 우편이 없어요 🙂</p>'):'<p class="jdmb-n">우편을 불러오는 중이에요…</p>';
+  var all=o.querySelector('#jdmb-all');all.disabled=busy||!on||!ls.length}
+ function openBox(){if(S.ov&&S.ov.isConnected)return;start();var o=document.createElement('div');o.id='jdmb-ov';
+  o.innerHTML='<div class="jdmb-box"><div class="jdmb-h"><b>📬 우편함</b><button type="button" data-x>✕</button></div><div id="jdmb-note" class="jdmb-n"></div><div id="jdmb-list"></div><div class="jdmb-f"><button type="button" class="jdmb-bt" id="jdmb-all" data-ml="__all">📥 모두 받기</button><button type="button" class="jdmb-bt" data-x>닫기</button></div></div>';
+  document.body.appendChild(o);S.ov=o;
+  o.addEventListener('click',function(e){if(e.target===o||e.target.closest('[data-x]')){o.remove();return}var b=e.target.closest('[data-ml]');if(!b||b.disabled||busy)return;busy=true;drawBox();
+   (b.dataset.ml==='__all'?claimAll():claim(b.dataset.ml)).then(function(r){busy=false;toast(r.msg);drawBox()},function(){busy=false;toast('문제가 생겼어요. 다시 눌러 주세요');drawBox()})});
+  drawBox()}
+ function openCs(){try{L.bulk=null;L.view='cs';L.sel=null}catch(_){}if(window.LOOT&&LOOT.openBag)LOOT.openBag()}
+ /* ---- 항상 보이는 버튼 (오른쪽 가장자리) ---- */
+ function mk(){if(!document.body){setTimeout(mk,300);return}if(document.getElementById('jdmb-fab'))return;
+  var st=document.createElement('style');st.textContent='@keyframes jdmbpulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,212,90,.8)}50%{transform:scale(1.1);box-shadow:0 0 0 9px rgba(255,212,90,0)}}'
+   +'#jdmb-fab{position:fixed;right:8px;top:42%;z-index:9000;display:flex;flex-direction:column;gap:10px}'
+   +'#jdmb-fab button{position:relative;width:52px;height:52px;border-radius:50%;border:3px solid #ffd45a;background:rgba(20,26,60,.92);font-size:26px;line-height:1;padding:0;color:#fff}'
+   +'#jdmb-fab button small{position:absolute;left:0;right:0;bottom:-15px;font-size:11px;font-weight:800;color:#ffe9a8;text-shadow:0 1px 2px #000;pointer-events:none}'
+   +'#jdmb-fab i{position:absolute;top:-7px;right:-7px;min-width:24px;height:24px;border-radius:12px;background:#e02828;color:#fff;font:700 14px/24px sans-serif;font-style:normal;text-align:center;pointer-events:none;border:2px solid #fff;box-sizing:border-box;display:none}'
+   +'#jdmb-ov{position:fixed;inset:0;z-index:100012;background:rgba(6,3,16,.85);display:flex;align-items:center;justify-content:center;padding:12px}'
+   +'.jdmb-box{width:min(94vw,480px);max-height:88vh;overflow:auto;background:linear-gradient(#22183c,#140e26);border:2px solid #ffd45a;border-radius:16px;padding:12px;color:#fff}'
+   +'.jdmb-h{display:flex;justify-content:space-between;align-items:center;font-size:18px;margin-bottom:6px}.jdmb-h button{width:44px;height:44px;border-radius:10px;font-size:18px}'
+   +'.jdmb-n{font-size:13px;color:#bdb3d9;text-align:center;margin:6px 0}'
+   +'.jdmb-m{border:1px solid #3a4a7a;border-radius:10px;padding:10px;margin:8px 0;background:rgba(255,255,255,.05)}.jdmb-b{white-space:pre-wrap;font-size:14px;margin:4px 0}.jdmb-g{font-size:14px;color:#ffe9a8;margin:4px 0}.jdmb-m small{opacity:.7;display:block}'
+   +'.jdmb-bt{min-height:44px;padding:8px 14px;border-radius:10px;font-size:15px;font-weight:800;margin-top:6px;width:100%}.jdmb-bt:disabled{opacity:.45}.jdmb-f{display:flex;gap:8px;margin-top:8px}.jdmb-f .jdmb-bt{flex:1}';
+  document.head.appendChild(st);
+  var f=document.createElement('div');f.id='jdmb-fab';
+  f.innerHTML='<button type="button" id="jdmb-mail" title="우편함">📬<small>우편함</small><i></i></button><button type="button" id="jdmb-cs" title="소비 (큐브·뽑기권·골드보따리)">🧪<small>소비</small></button>';
+  document.body.appendChild(f);fabEl=f.querySelector('#jdmb-mail');dotEl=f.querySelector('i');
+  f.querySelector('#jdmb-mail').onclick=openBox;f.querySelector('#jdmb-cs').onclick=openCs;
+  start();paint()}
+ mk();
+ window.JDMAILBOX={open:openBox,openCs:openCs,claim:claim,claimAll:claimAll,count:function(){return list().length}};
+})();
 /* 다른 게임에서 #dx=gacha|equip|syn|book 으로 들어오면 그 창 열기 */
 (function(){var m=/^#dx=(gacha|equip|syn|book|pow|aw)/.exec(location.hash);if(!m)return;var n=0,t=setInterval(function(){if(++n>40){clearInterval(t);return}if(DLREADY&&L.dlxOk){clearInterval(t);try{history.replaceState(null,'',location.pathname+location.search)}catch(_){}L.dlxOpen(m[1])}},500)})();window.addEventListener('storage',function(e){if(e.key==='jd_mail')setTimeout(jdMail,300)});
 (function(){var s=document.createElement('style');s.textContent="#jd-mail{position:fixed;inset:0;z-index:100008;background:rgba(6,3,16,.8);display:flex;align-items:center;justify-content:center;padding:14px}#jd-mail .ml-box{width:min(360px,100%);background:linear-gradient(#2a1f55,#160f33);border:2px solid #ffd23f;border-radius:18px;padding:16px;text-align:center;color:#fff;box-shadow:0 0 30px #ffd23f55;animation:jdPchB .5s cubic-bezier(.2,1.6,.4,1)}#jd-mail .ml-ic{font-size:3rem;line-height:1}#jd-mail .ml-t{display:block;font-size:1.25rem;color:#ffd23f;margin:4px 0}#jd-mail .ml-s{display:block;color:#bdb3d9;font-size:.8rem;margin-bottom:8px}#jd-mail .ml-l{background:#0005;border-radius:12px;padding:8px 10px;text-align:left;max-height:45vh;overflow:auto}#jd-mail .ml-r{padding:4px 0;font-size:.92rem;border-bottom:1px dashed #ffffff22}#jd-mail .ml-r:last-child{border:0}#jd-mail .ml-r b{color:#ffd23f}#jd-mail #ml-ok{margin-top:12px;font-size:1.05rem;padding:10px 28px;border-radius:12px;background:#5b3fd0;color:#fff;border:2px solid #ffd23f;font-weight:900}";document.head.appendChild(s)})();
